@@ -23,6 +23,8 @@ class Sbp:
 
     def clone_state(self):
         return [row[:] for row in self.board]
+
+
     def is_done(self):
         # Puzzle is solved if no -1 cells remain
         return not any(-1 in row for row in self.board)
