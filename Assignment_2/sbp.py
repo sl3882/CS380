@@ -1,5 +1,6 @@
 import sys
 import random
+
 class Sbp:
     def __init__(self):
         self.width = 0
@@ -24,12 +25,10 @@ class Sbp:
     def clone_state(self):
         return [row[:] for row in self.board]
 
-
     def is_done(self):
-        # Puzzle is solved if no -1 cells remain
+
         return not any(-1 in row for row in self.board)
     def get_piece_cells(self, piece):
-        """Return all cells occupied by a piece"""
         cells = []
         for y in range(self.height):
             for x in range(self.width):
@@ -38,7 +37,6 @@ class Sbp:
         return cells
 
     def can_move(self, piece, direction):
-        """Check if a piece can move in given direction"""
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
@@ -50,8 +48,7 @@ class Sbp:
                 return False
         return True
 
-    def get_available_moves(self):
-        """Get all possible moves for all pieces"""
+    def available_moves(self):
         moves = []
         pieces = set(val for row in self.board for val in row if val >= 2)
         directions = ["up", "down", "left", "right"]
@@ -63,20 +60,17 @@ class Sbp:
         return moves
 
     def apply_move(self, piece, direction):
-        """Apply a move to the board"""
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        # Clear current positions
         for x, y in cells:
             self.board[y][x] = 0 if self.board[y][x] != -1 else -1
 
-        # Set new positions
         for x, y in cells:
             self.board[y + dy][x + dx] = piece
 
     def compare_board(self, other_board):
-        """Compare this board with another board"""
+
         if len(self.board) != len(other_board) or len(self.board[0]) != len(other_board[0]):
             return False
         return all(self.board[i][j] == other_board[i][j]
@@ -84,7 +78,7 @@ class Sbp:
                    for j in range(len(self.board[0])))
 
     def normalize(self):
-        """Normalize the board state"""
+
         next_idx = 3
         for y in range(self.height):
             for x in range(self.width):
@@ -102,10 +96,10 @@ class Sbp:
                     next_idx += 1
 
     def random_walk(self, N):
-        """Perform N random moves"""
+
         history = []
         for _ in range(N):
-            moves = self.get_available_moves()
+            moves = self.available_moves()
             if not moves or self.is_done():
                 break
             piece, direction = random.choice(moves)
@@ -137,7 +131,7 @@ def main():
 
     elif command == "availableMoves":
         puzzle.load_board(filename)
-        for move in puzzle.get_available_moves():
+        for move in puzzle.available_moves():
             print(f"({move[0]}, {move[1]})")
 
     elif command == "applyMove":
