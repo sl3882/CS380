@@ -159,19 +159,22 @@ class Sbp:
     def dfs(self, depth_limit=50):
         start_time = time.time()
         initial_state = self.clone_state()
-        stack = [([], initial_state, 0)]
-        visited = [initial_state]
+        stack = [([], initial_state, 0)]  # Stack to hold moves, board state, and current depth
+        visited = set()  # Set to track visited states to avoid re-processing
+        visited.add(tuple(map(tuple, initial_state)))  # Add the initial state to visited set
 
         nodes_explored = 0
 
         while stack:
-            moves_list, current_state, current_depth = stack.pop()
+            moves_list, current_state, current_depth = stack.pop()  # Pop the most recent state
+
             nodes_explored += 1
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
             temp_puzzle.board = current_state
 
+            # Check if the puzzle is solved
             if temp_puzzle.is_done():
                 end_time = time.time()
                 for piece, direction in moves_list:
@@ -184,20 +187,22 @@ class Sbp:
                 print(len(moves_list))
                 return True
 
+            # Only continue if current depth is within the depth limit
             if current_depth < depth_limit:
                 for piece, direction in temp_puzzle.available_moves():
                     new_puzzle = Sbp()
                     new_puzzle.width = self.width
                     new_puzzle.height = self.height
-                    new_puzzle.board = [row[:] for row in current_state]
+                    new_puzzle.board = [row[:] for row in current_state]  # Create a new board state
                     new_puzzle.apply_move(piece, direction)
 
-                    new_state_tuple = tuple(map(tuple, new_puzzle.board))
-                    if new_state_tuple not in visited:
-                        visited.add(new_state_tuple)
-                        new_moves = moves_list + [(piece, direction)]
-                        stack.append((new_moves, new_puzzle.board, current_depth + 1))
+                    new_state_tuple = tuple(map(tuple, new_puzzle.board))  # Convert to tuple for immutability
+                    if new_state_tuple not in visited:  # Check if the new state has been visited
+                        visited.add(new_state_tuple)  # Mark the state as visited
+                        new_moves = moves_list + [(piece, direction)]  # Append the move to the list
+                        stack.append((new_moves, new_puzzle.board, current_depth + 1))  # Push new state onto stack
 
+        print("No solution found.")
         return False
 
     def print_board(self):
