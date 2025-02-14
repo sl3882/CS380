@@ -217,7 +217,7 @@ def main():  # Main function
 
     elif command == "bfs":
         puzzle.load_board(filename)
-        puzzle.normalize()
+        # puzzle.normalize()
         puzzle.bfs()
 
     else:  # If command is unknown
