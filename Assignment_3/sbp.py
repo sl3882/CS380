@@ -110,35 +110,58 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
     def bfs(self):
+        """Perform breadth-first search to find solution"""
         start_time = time.time()
-        visited = set()
-        queue = deque([(self.clone_state(), [], 0)])
-        visited.add(str(self.board))
+        queue = deque([([], self.clone_state())])  # Queue of (moves, state) pairs
+        visited = {self.serialize_board()}  # Set of visited states
+        nodes_explored = 0
 
         while queue:
-            current_state, move_history, node_count = queue.popleft()
-            self.board = current_state
+            moves_list, current_state = queue.popleft()
+            nodes_explored += 1
 
-            # Check if the puzzle is solved
-            if self.is_done():
+            # Create temporary puzzle with current state for checking moves
+            temp_puzzle = Sbp()
+            temp_puzzle.width = self.width
+            temp_puzzle.height = self.height
+            temp_puzzle.board = current_state
+
+            # Check if puzzle is solved
+            if temp_puzzle.is_done():
                 end_time = time.time()
-                spent_time = round(end_time - start_time, 2)
-                print("\n".join([f"({move[0]}, {move[1]})" for move in move_history]))
-                self.print_board()
-                print(f"Number of nodes explored: {node_count}")
-                print(f"Time taken to find the solution: {spent_time} seconds")
-                print(f"Length of the solution: {len(move_history)}")
-                return
+                # Print moves
+                for piece, direction in moves_list:
+                    print(f"({piece},{direction})")
+                # Print final state
+                temp_puzzle.print_board()
+                # Print statistics
+                print(nodes_explored)
+                print(f"{end_time - start_time:.2f}")
+                print(len(moves_list))
+                return True
 
-            # Explore all available moves
-            for piece, direction in self.available_moves():
-                self.apply_move(piece, direction)
-                state_str = str(self.board)
+            # Get available moves from current state
+            available_moves = temp_puzzle.available_moves()
+
+            for piece, direction in available_moves:
+                # Create new puzzle state for this move
+                new_puzzle = Sbp()
+                new_puzzle.width = self.width
+                new_puzzle.height = self.height
+                new_puzzle.board = [row[:] for row in current_state]
+
+                # Apply the move
+                new_puzzle.apply_move(piece, direction)
+                new_puzzle.normalize()
+
+                # Check if this state has been visited
+                state_str = new_puzzle.serialize_board()
                 if state_str not in visited:
                     visited.add(state_str)
-                    queue.append((self.clone_state(), move_history + [(piece, direction)], node_count + 1))
+                    new_moves = moves_list + [(piece, direction)]
+                    queue.append((new_moves, new_puzzle.board))
 
-        print("No solution found.")
+        return False  # No solution found
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
