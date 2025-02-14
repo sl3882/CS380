@@ -115,59 +115,124 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
     def bfs(self):
+
+
+
         start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        visited = {self.board_to_tuple(initial_state)}  # Use a set for visited states
+        visited = [initial_state]
         nodes_explored = 0
-        max_nodes = 100000  # Limit the number of explored nodes
 
         while queue:
+
             moves_list, current_state = queue.popleft()
             nodes_explored += 1
-
-            if nodes_explored > max_nodes:
-                print("Exceeded maximum nodes explored.")
-                return False
 
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
             temp_puzzle.board = current_state
 
+            # Check if current state is solution
             if temp_puzzle.is_done():
                 end_time = time.time()
+                # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
                 print()
+                # Print final state
                 temp_puzzle.print_board()
                 print()
+                # Print statistics
                 print(nodes_explored)
                 print(f"{end_time - start_time:.2f}")
                 print(len(moves_list))
                 return True
 
+            # Try each possible move
             for piece, direction in temp_puzzle.available_moves():
+                # Create new puzzle state
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
                 new_puzzle.board = [row[:] for row in current_state]
+
+                # Apply the move
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                new_state_tuple = self.board_to_tuple(new_puzzle.board)  # Convert board to tuple
+                # Check if we've seen this state before
+                is_new_state = True
+                for visited_state in visited:
+                    if new_puzzle.compare_board(visited_state):
+                        is_new_state = False
+                        break
 
-                if new_state_tuple not in visited:  # Check if visited using the tuple
-                    visited.add(new_state_tuple)
+                if is_new_state:
+                    visited.append(new_puzzle.board)
                     new_moves = moves_list + [(piece, direction)]
                     queue.append((new_moves, new_puzzle.board))
 
-        print("No solution found.")
         return False
+    def dfs(self, depth_limit=50):
+        start_time = time.time()
+        initial_state = self.clone_state()
+        stack = [([], initial_state, 0)]  # Stack to hold (moves_list, current_state, current_depth)
+        visited = [initial_state]
+        nodes_explored = 0
 
-    def board_to_tuple(self, board):
-        """Converts a 2D board (list of lists) to a tuple of tuples for hashing."""
-        return tuple(tuple(row) for row in board)
+        while stack:
+            moves_list, current_state, current_depth = stack.pop()
+            nodes_explored += 1
+
+            temp_puzzle = Sbp()
+            temp_puzzle.width = self.width
+            temp_puzzle.height = self.height
+            temp_puzzle.board = current_state
+
+            # Check if current state is solution
+            if temp_puzzle.is_done():
+                end_time = time.time()
+                # Print the moves
+                for piece, direction in moves_list:
+                    print(f"({piece},{direction})")
+                print()
+                # Print final state
+                temp_puzzle.print_board()
+                print()
+                # Print statistics
+                print(nodes_explored)
+                print(f"{end_time - start_time:.2f}")
+                print(len(moves_list))
+                return True
+
+            if current_depth < depth_limit:
+                # Try each possible move
+                for piece, direction in temp_puzzle.available_moves():
+                    # Create new puzzle state
+                    new_puzzle = Sbp()
+                    new_puzzle.width = self.width
+                    new_puzzle.height = self.height
+                    new_puzzle.board = [row[:] for row in current_state]
+
+                    # Apply the move
+                    new_puzzle.apply_move(piece, direction)
+                    new_puzzle.normalize()
+
+                    # Check if we've seen this state before
+                    is_new_state = True
+                    for visited_state in visited:
+                        if new_puzzle.compare_board(visited_state):
+                            is_new_state = False
+                            break
+
+                    if is_new_state:
+                        visited.append(new_puzzle.board)
+                        new_moves = moves_list + [(piece, direction)]
+                        stack.append((new_moves, new_puzzle.board, current_depth + 1))
+
+        return False
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
@@ -235,6 +300,10 @@ def main():  # Main function
         puzzle.load_board(filename)
         puzzle.normalize()
         puzzle.bfs()
+    elif command == "dfs":
+        puzzle.load_board(filename)
+        puzzle.normalize()
+        puzzle.dfs()
 
     else:  # If command is unknown
         print(f"Unknown command: {command}")  # Print error message
