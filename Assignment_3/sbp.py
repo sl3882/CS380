@@ -118,10 +118,9 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         """Perform breadth-first search to find solution"""
         start_time = time.time()
 
-        # Queue entries will contain: (moves_list, board_state)
-        initial_state = tuple(tuple(row) for row in self.board)  # Tuple of tuples for hashing
+        initial_state = tuple(tuple(row) for row in self.board)
         queue = deque([([], initial_state)])
-        visited = {initial_state}  # Set for visited states
+        visited = {initial_state}
         nodes_explored = 0
 
         while queue:
@@ -131,7 +130,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
-            temp_puzzle.board = [list(row) for row in current_state]  # Convert back to list of lists
+            temp_puzzle.board = [list(row) for row in current_state]
 
             if temp_puzzle.is_done():
                 end_time = time.time()
@@ -152,18 +151,21 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
-                new_puzzle.board = [list(row) for row in current_state]  # Convert back to list of lists
+                new_puzzle.board = [list(row) for row in current_state]
 
                 new_puzzle.apply_move(piece, direction)
-                new_puzzle.normalize()
-                new_state_tuple = tuple(tuple(row) for row in new_puzzle.board)  # Tuple of tuples
+                new_state_tuple = tuple(tuple(row) for row in new_puzzle.board) # keep the raw state before normalization
 
-                if new_state_tuple not in visited:
-                    visited.add(new_state_tuple)
+                new_puzzle.normalize() # normalize for visited check
+                normalized_new_state_tuple = tuple(tuple(row) for row in new_puzzle.board)
+
+                if normalized_new_state_tuple not in visited: # check if NORMALIZED state is visited
+                    visited.add(normalized_new_state_tuple) # add NORMALIZED state to visited
                     new_moves = moves_list + [(piece, direction)]
-                    queue.append((new_moves, new_state_tuple))
+                    queue.append((new_moves, new_state_tuple)) # queue the RAW state
 
-        return False  # No solution found
+        return False
+
 
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
