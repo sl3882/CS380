@@ -286,7 +286,10 @@ def main():  # Main function
         puzzle.load_board(filename)
         puzzle.normalize()
         puzzle.bfs()
-
+    elif command == "dfs":
+        puzzle.load_board(filename)
+        puzzle.normalize()
+        puzzle.dfs()
     else:  # If command is unknown
         print(f"Unknown command: {command}")  # Print error message
 
