@@ -139,9 +139,13 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         while queue:
             moves_list, current_state = queue.popleft()
             nodes_explored += 1
+
+
             # Log the current state and moves
             print(f"Exploring state: {nodes_explored}, Moves so far: {moves_list}")
             # Set up temporary puzzle with current state
+
+
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
@@ -153,8 +157,10 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
+                print()
                 # Print final state
                 temp_puzzle.print_board()
+                print()
                 # Print statistics
                 print(nodes_explored)
                 print(f"{end_time - start_time:.2f}")
