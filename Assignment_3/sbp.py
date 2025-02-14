@@ -21,15 +21,9 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 list(map(int, parts[i * self.width + 2:(i + 1) * self.width + 2]))
                 for i in range(self.height)
             ]
-        except FileNotFoundError:
-            print(f"Error: The file '{filename}' was not found.")
-            sys.exit(1)
-        except ValueError:
-            print("Error: File content format is invalid.")
-            sys.exit(1)
-        except Exception as e:  # Catch all other exceptions
-            print(f"Error loading game state: {e}")
-            sys.exit(1)
+        except Exception as e:  # Handle any exceptions
+            print(f"Error loading game state : {e}")  # Print error message
+            sys.exit(1)  # Exit the program with error code 1
 
     def clone_state(self):  # Method to create a deep copy of the board
         return [row[:] for row in self.board]  # Return a new list of new lists
@@ -120,77 +114,138 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             self.normalize()  # Normalize the board
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
-
     def bfs(self):
+        """Perform breadth-first search to find solution"""
         start_time = time.time()
+
+        # Queue entries will contain: (moves_list, board_state)
         initial_state = self.clone_state()
-        queue = deque([([], initial_state)])
-        visited = [initial_state]
-        nodes_explored = 0
+        queue = deque([([], initial_state)])  # Queue initialized with the start state
+        visited = [initial_state]  # Visited states to prevent revisiting
+        nodes_explored = 0  # Keep track of explored nodes
 
         while queue:
             moves_list, current_state = queue.popleft()
-            nodes_explored += 1
+            nodes_explored += 1  # Increment node exploration counter
 
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
             temp_puzzle.board = current_state
 
+            # Check if current state is solution
             if temp_puzzle.is_done():
                 end_time = time.time()
+                # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
                 print()
+                # Print final state
                 temp_puzzle.print_board()
                 print()
-                print(nodes_explored)
-                print(f"{end_time - start_time:.2f}")
-                print(len(moves_list))
-                return True
+                # Print statistics
+                print(f"Nodes explored: {nodes_explored}")
+                print(f"Time taken: {end_time - start_time:.2f} seconds")
+                print(f"Moves: {len(moves_list)}")
+                return True  # Return True when a solution is found
 
+            # Try each possible move
             for piece, direction in temp_puzzle.available_moves():
+                # Create new puzzle state
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
                 new_puzzle.board = [row[:] for row in current_state]
 
+                # Apply the move
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                if new_puzzle.board not in visited:
-                    queue.append((moves_list + [(piece, direction)], new_puzzle.board))
-                    visited.append(new_puzzle.board)
+                # Check if we've seen this state before
+                is_new_state = True
+                for visited_state in visited:
+                    if new_puzzle.compare_board(visited_state):
+                        is_new_state = False
+                        break
 
+                if is_new_state:
+                    visited.append(new_puzzle.board)
+                    new_moves = moves_list + [(piece, direction)]  # Record the sequence of moves
+                    queue.append((new_moves, new_puzzle.board))  # Add to the queue
+
+        print("No solution found.")  # If no solution is found
         return False
 
-    def print_board(self):
-        for row in self.board:
-            print(" ".join(str(x) for x in row))
+    def print_board(self):  # Method to print the board
+        print(f"{self.width},{self.height},")  # Print width and height
+        for row in self.board:  # Iterate over rows
+            print(",".join(map(str, row)) + ",")  # Print each row as comma-separated values
 
-def main():
-    puzzle = Sbp()
-    puzzle.load_board('puzzle.txt')
-    print("Initial State:")
-    puzzle.print_board()
-    print()
+def main():  # Main function
+    if len(sys.argv) < 3:  # Check if enough command-line arguments are provided
+        print("Usage: python3 sbp.py <command> <filename> [args]")  # Print usage instructions
+        sys.exit(1)  # Exit with error code 1
 
-    while not puzzle.is_done():
-        moves = puzzle.available_moves()
-        if not moves:
-            print("No solution found.")
-            break
+    command = sys.argv[1]  # Get command from command-line arguments
+    filename = sys.argv[2]  # Get filename from command-line arguments
+    puzzle = Sbp()  # Create Sbp instance
 
-        move = random.choice(moves)
-        piece, direction = move
-        puzzle.apply_move(piece, direction)
-        puzzle.print_board()
-        print()
+    if command == "print":  # If command is "print"
+        puzzle.load_board(filename)  # Load board from file
+        puzzle.print_board()  # Print the board
 
-    if puzzle.is_done():
-        print("Puzzle Solved!")
-    else:
-        print("Unable to solve puzzle.")
+    elif command == "done":  # If command is "done"
+        puzzle.load_board(filename)  # Load board from file
+        print(puzzle.is_done())  # Print whether puzzle is solved
 
-if __name__ == "__main__":
-    main()
+    elif command == "availableMoves":  # If command is "availableMoves"
+        puzzle.load_board(filename)  # Load board from file
+        for move in puzzle.available_moves():  # Iterate over available moves
+            print(f"({move[0]}, {move[1]})")  # Print each move
+
+    elif command == "applyMove":  # If command is "applyMove"
+        if len(sys.argv) != 4:  # Check if correct number of arguments
+            print("Usage: python3 sbp.py applyMove <filename> <move>")  # Print usage instructions
+            sys.exit(1)  # Exit with error code 1
+        puzzle.load_board(filename)  # Load board from file
+        move = sys.argv[3].strip("()")  # Get move from command-line arguments
+        piece, direction = move.split(",")  # Split move into piece and direction
+        puzzle.apply_move(int(piece), direction.strip())  # Apply the move
+        puzzle.print_board()  # Print the updated board
+
+    elif command == "compare":  # If command is "compare"
+        if len(sys.argv) != 4:  # Check if correct number of arguments
+            print("Usage: python3 sbp.py compare <filename1> <filename2>")  # Print usage instructions
+            sys.exit(1)  # Exit with error code 1
+        puzzle2 = Sbp()  # Create second Sbp instance
+        puzzle.load_board(filename)  # Load first board
+        puzzle2.load_board(sys.argv[3])  # Load second board
+        print(puzzle.compare_board(puzzle2.board))  # Print comparison result
+
+    elif command == "norm":  # If command is "norm"
+        puzzle.load_board(filename)  # Load board from file
+        puzzle.normalize()  # Normalize the board
+        puzzle.print_board()  # Print the normalized board
+
+    elif command == "random":  # If command is "random"
+        if len(sys.argv) != 4:  # Check if correct number of arguments
+            print("Usage: python3 sbp.py random <filename> <N>")  # Print usage instructions
+            sys.exit(1)  # Exit with error code 1
+        puzzle.load_board(filename)  # Load board from file
+        N = int(sys.argv[3])  # Get number of random moves
+        puzzle.print_board()  # Print initial board
+        for (piece, direction), state in puzzle.random_walk(N):  # Perform random walk
+            print(f"({piece}, {direction})")  # Print each move
+            puzzle.board = state  # Update board state
+            puzzle.print_board()  # Print updated board
+
+    elif command == "bfs":
+        puzzle.load_board(filename)
+        puzzle.normalize()
+        puzzle.bfs()
+
+    else:  # If command is unknown
+        print(f"Unknown command: {command}")  # Print error message
+
+if __name__ == "__main__":  # If script is run directly
+    main()  # Call main function
