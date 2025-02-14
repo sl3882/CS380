@@ -45,6 +45,17 @@ class Sbp:
 
     def get_piece_cells(self, piece):
         return self.piece_locations.get(piece, [])
+    def random_walk(self, N):  # Method to perform a random walk
+        history = []  # Initialize empty list for move history
+        for _ in range(N):  # Repeat N times
+            moves = self.available_moves()  # Get available moves
+            if not moves or self.is_done():  # If no moves or puzzle is solved
+                break  # Exit loop
+            piece, direction = random.choice(moves)  # Choose a random move
+            self.apply_move(piece, direction)  # Apply the move
+            self.normalize()  # Normalize the board
+            history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
+        return history  # Return move history
 
     def can_move(self, piece, direction):
         cells = self.get_piece_cells(piece)
@@ -193,45 +204,75 @@ class Sbp:
         for row in self.board:
             print(",".join(map(str, row)) + ",")
 
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: python3 sbp.py <command> <filename> [args]")
-        sys.exit(1)
+def main():  # Main function
+    if len(sys.argv) < 3:  # Check if enough command-line arguments are provided
+        print("Usage: python3 sbp.py <command> <filename> [args]")  # Print usage instructions
+        sys.exit(1)  # Exit with error code 1
 
-    command = sys.argv[1]
-    filename = sys.argv[2]
-    puzzle = Sbp()
+    command = sys.argv[1]  # Get command from command-line arguments
+    filename = sys.argv[2]  # Get filename from command-line arguments
+    puzzle = Sbp()  # Create Sbp instance
 
-    if command == "print":
-        puzzle.load_board(filename)
-        puzzle.print_board()
+    if command == "print":  # If command is "print"
+        puzzle.load_board(filename)  # Load board from file
+        puzzle.print_board()  # Print the board
 
-    elif command == "done":
-        puzzle.load_board(filename)
-        print(puzzle.is_done())
+    elif command == "done":  # If command is "done"
+        puzzle.load_board(filename)  # Load board from file
+        print(puzzle.is_done())  # Print whether puzzle is solved
 
-    elif command == "availableMoves":
-        puzzle.load_board(filename)
-        for move in puzzle.available_moves():
-            print(f"({move[0]}, {move[1]})")
+    elif command == "availableMoves":  # If command is "availableMoves"
+        puzzle.load_board(filename)  # Load board from file
+        for move in puzzle.available_moves():  # Iterate over available moves
+            print(f"({move[0]}, {move[1]})")  # Print each move
 
-    elif command == "applyMove":
-        if len(sys.argv) < 5:
-            print("Usage: python3 sbp.py applyMove <filename> <piece> <direction>")
-            sys.exit(1)
-        puzzle.load_board(filename)
-        piece = int(sys.argv[3])
-        direction = sys.argv[4]
-        puzzle.apply_move(piece, direction)
-        puzzle.print_board()
+    elif command == "applyMove":  # If command is "applyMove"
+        if len(sys.argv) != 4:  # Check if correct number of arguments
+            print("Usage: python3 sbp.py applyMove <filename> <move>")  # Print usage instructions
+            sys.exit(1)  # Exit with error code 1
+        puzzle.load_board(filename)  # Load board from file
+        move = sys.argv[3].strip("()")  # Get move from command-line arguments
+        piece, direction = move.split(",")  # Split move into piece and direction
+        puzzle.apply_move(int(piece), direction.strip())  # Apply the move
+        puzzle.print_board()  # Print the updated board
+
+    elif command == "compare":  # If command is "compare"
+        if len(sys.argv) != 4:  # Check if correct number of arguments
+            print("Usage: python3 sbp.py compare <filename1> <filename2>")  # Print usage instructions
+            sys.exit(1)  # Exit with error code 1
+        puzzle2 = Sbp()  # Create second Sbp instance
+        puzzle.load_board(filename)  # Load first board
+        puzzle2.load_board(sys.argv[3])  # Load second board
+        print(puzzle.compare_board(puzzle2.board))  # Print comparison result
+
+    elif command == "norm":  # If command is "norm"
+        puzzle.load_board(filename)  # Load board from file
+        puzzle.normalize()  # Normalize the board
+        puzzle.print_board()  # Print the normalized board
+
+    elif command == "random":  # If command is "random"
+        if len(sys.argv) != 4:  # Check if correct number of arguments
+            print("Usage: python3 sbp.py random <filename> <N>")  # Print usage instructions
+            sys.exit(1)  # Exit with error code 1
+        puzzle.load_board(filename)  # Load board from file
+        N = int(sys.argv[3])  # Get number of random moves
+        puzzle.print_board()  # Print initial board
+        for (piece, direction), state in puzzle.random_walk(N):  # Perform random walk
+            print(f"({piece}, {direction})")  # Print each move
+            puzzle.board = state  # Update board state
+            puzzle.print_board()  # Print updated board
 
     elif command == "bfs":
         puzzle.load_board(filename)
+        puzzle.normalize()
         puzzle.bfs()
 
-    elif command == "dfs":
-        puzzle.load_board(filename)
-        puzzle.dfs()
+    else:  # If command is unknown
+        print(f"Unknown command: {command}")  # Print error message
+
+if __name__ == "__main__":  # If script is run directly
+    main()  # Call main function
+
 
 if __name__ == "__main__":
     main()
