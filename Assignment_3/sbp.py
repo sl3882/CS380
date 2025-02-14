@@ -84,15 +84,15 @@ class Sbp:
                     moves.append((piece, direction))
         return moves
 
-    def apply_move(self, piece, direction):
-        cells = self.get_piece_cells(piece)
-        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
+    def apply_move(self, piece, direction):  # Method to apply a move
+        cells = self.get_piece_cells(piece)  # Get coordinates of the piece
+        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
 
-        for x, y in cells:
-            self.board[y][x] = 0 if self.board[y][x] != -1 else -1
-        for x, y in cells:
-            self.board[y + dy][x + dx] = piece
-        self.update_piece_locations()  # Update piece locations cache after move
+        for x, y in cells:  # Iterate over piece cells
+            self.board[y][x] = 0 if self.board[y][x] != -1 else -1  # Clear old position
+
+        for x, y in cells:  # Iterate over piece cells
+            self.board[y + dy][x + dx] = piece  # Set new position
 
     def compare_board(self, other_board):
         return self.board == other_board
