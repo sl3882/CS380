@@ -156,53 +156,67 @@ class Sbp:
         print("No solution found.")
         return False
 
-    def dfs(self, depth_limit=50):
+    def bfs(self):
+        """Perform breadth-first search to find solution"""
+        start_time = time.time()
+
+        # Queue entries will contain: (moves_list, board_state)
         start_time = time.time()
         initial_state = self.clone_state()
-        stack = [([], initial_state, 0)]  # Stack to hold moves, board state, and current depth
-        visited = set()  # Set to track visited states to avoid re-processing
-        visited.add(tuple(map(tuple, initial_state)))  # Add the initial state to visited set
-
+        queue = deque([([], initial_state)])
+        visited = [initial_state]
         nodes_explored = 0
 
-        while stack:
-            moves_list, current_state, current_depth = stack.pop()  # Pop the most recent state
+        while queue:
 
+            moves_list, current_state = queue.popleft()
             nodes_explored += 1
+
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
             temp_puzzle.board = current_state
 
-            # Check if the puzzle is solved
+            # Check if current state is solution
             if temp_puzzle.is_done():
                 end_time = time.time()
+                # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
                 print()
+                # Print final state
                 temp_puzzle.print_board()
                 print()
+                # Print statistics
                 print(nodes_explored)
                 print(f"{end_time - start_time:.2f}")
                 print(len(moves_list))
                 return True
 
-            # Only continue if current depth is within the depth limit
-            if current_depth < depth_limit:
-                for piece, direction in temp_puzzle.available_moves():
-                    new_puzzle = Sbp()
-                    new_puzzle.width = self.width
-                    new_puzzle.height = self.height
-                    new_puzzle.board = [row[:] for row in current_state]  # Create a new board state
-                    new_puzzle.apply_move(piece, direction)
+            # Try each possible move
+            for piece, direction in temp_puzzle.available_moves():
+                # Create new puzzle state
+                new_puzzle = Sbp()
+                new_puzzle.width = self.width
+                new_puzzle.height = self.height
+                new_puzzle.board = [row[:] for row in current_state]
 
-                    new_state_tuple = tuple(map(tuple, new_puzzle.board))  # Convert to tuple for immutability
-                    if new_state_tuple not in visited:  # Check if the new state has been visited
-                        visited.add(new_state_tuple)  # Mark the state as visited
-                        new_moves = moves_list + [(piece, direction)]  # Append the move to the list
-                        stack.append((new_moves, new_puzzle.board, current_depth + 1))  # Push new state onto stack
+                # Apply the move
+                new_puzzle.apply_move(piece, direction)
+                new_puzzle.normalize()
 
-        print("No solution found.")
+                # Check if we've seen this state before
+                is_new_state = True
+                for visited_state in visited:
+                    if new_puzzle.compare_board(visited_state):
+                        is_new_state = False
+                        break
+
+                if is_new_state:
+                    visited.append(new_puzzle.board)
+                    new_moves = moves_list + [(piece, direction)]
+                    queue.append((new_moves, new_puzzle.board))
+
         return False
 
     def print_board(self):
