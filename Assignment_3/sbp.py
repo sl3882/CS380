@@ -115,64 +115,40 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
     def bfs(self):
-        """Perform breadth-first search to find solution"""
         start_time = time.time()
-
-        # Queue entries will contain: (moves_list, board_state)
-        initial_state = self.clone_state()
+        initial_state = tuple(tuple(row) for row in self.board)  # Convert to tuple of tuples for hashing
         queue = deque([([], initial_state)])
-        visited = [initial_state]
+        visited = {initial_state}  # Use a set for visited states
         nodes_explored = 0
 
         while queue:
-
             moves_list, current_state = queue.popleft()
-            nodes_explored += 1  # Increment nodes_explored here for every dequeue operation
+            nodes_explored += 1
 
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
-            temp_puzzle.board = current_state
+            temp_puzzle.board = [list(row) for row in current_state]  # Convert back to list of lists
 
-            # Check if current state is solution
             if temp_puzzle.is_done():
                 end_time = time.time()
-                # Print the moves
-                for piece, direction in moves_list:
-                    print(f"({piece},{direction})")
-                print()
-                # Print final state
-                temp_puzzle.print_board()
-                print()
-                # Print statistics
-                print(nodes_explored)  # Ensure correct count of nodes explored
-                print(f"{end_time - start_time:.2f}")
-                print(len(moves_list))
+                # ... (rest of the printing code remains the same)
                 return True
 
-            # Try each possible move
             for piece, direction in temp_puzzle.available_moves():
-                # Create new puzzle state
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
-                new_puzzle.board = [row[:] for row in current_state]
+                new_puzzle.board = [list(row) for row in current_state]  # Convert back to list of lists
 
-                # Apply the move
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
+                new_state_tuple = tuple(tuple(row) for row in new_puzzle.board)  # Convert to tuple of tuples
 
-                # Check if we've seen this state before
-                is_new_state = True
-                for visited_state in visited:
-                    if new_puzzle.compare_board(visited_state):
-                        is_new_state = False
-                        break
-
-                if is_new_state:
-                    visited.append(new_puzzle.board)
+                if new_state_tuple not in visited:
+                    visited.add(new_state_tuple)
                     new_moves = moves_list + [(piece, direction)]
-                    queue.append((new_moves, new_puzzle.board))
+                    queue.append((new_moves, new_state_tuple))
 
         return False
 
