@@ -1,5 +1,7 @@
 import sys
 import random
+from collections import deque
+import time
 
 class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
     def __init__(self):  # Constructor method
@@ -45,7 +47,8 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             new_x, new_y = x + dx, y + dy  # Calculate new position
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):  # Check if new position is within bounds
                 return False  # Return False if out of bounds
-            if self.board[new_y][new_x] not in [0, -1] and (new_x, new_y) not in cells:  # Check if new position is occupied
+            if self.board[new_y][new_x] not in [0, -1] and (
+                    new_x, new_y) not in cells:  # Check if new position is occupied
                 return False  # Return False if occupied by another piece
         return True  # Return True if move is valid
 
@@ -71,7 +74,8 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             self.board[y + dy][x + dx] = piece  # Set new position
 
     def compare_board(self, other_board):  # Method to compare this board with another
-        if len(self.board) != len(other_board) or len(self.board[0]) != len(other_board[0]):  # Check if dimensions match
+        if len(self.board) != len(other_board) or len(self.board[0]) != len(
+                other_board[0]):  # Check if dimensions match
             return False  # Return False if dimensions don't match
         return all(self.board[i][j] == other_board[i][j]  # Compare all cells
                    for i in range(len(self.board))
@@ -105,12 +109,40 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             self.normalize()  # Normalize the board
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
+    def bfs(self):
+        start_time = time.time()
+        visited = set()
+        queue = deque([(self.clone_state(), [], 0)])
+        visited.add(str(self.board))
 
+        while queue:
+            current_state, move_history, node_count = queue.popleft()
+            self.board = current_state
+
+            # Check if the puzzle is solved
+            if self.is_done():
+                end_time = time.time()
+                spent_time = round(end_time - start_time, 2)
+                print("\n".join([f"({move[0]}, {move[1]})" for move in move_history]))
+                self.print_board()
+                print(f"Number of nodes explored: {node_count}")
+                print(f"Time taken to find the solution: {spent_time} seconds")
+                print(f"Length of the solution: {len(move_history)}")
+                return
+
+            # Explore all available moves
+            for piece, direction in self.available_moves():
+                self.apply_move(piece, direction)
+                state_str = str(self.board)
+                if state_str not in visited:
+                    visited.add(state_str)
+                    queue.append((self.clone_state(), move_history + [(piece, direction)], node_count + 1))
+
+        print("No solution found.")
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
             print(",".join(map(str, row)) + ",")  # Print each row as comma-separated values
-
 
 def main():  # Main function
     if len(sys.argv) < 3:  # Check if enough command-line arguments are provided
@@ -169,6 +201,11 @@ def main():  # Main function
             print(f"({piece}, {direction})")  # Print each move
             puzzle.board = state  # Update board state
             puzzle.print_board()  # Print updated board
+
+    elif command == "bfs":
+        puzzle.load_board(filename)
+        puzzle.normalize()
+        puzzle.bfs()
 
     else:  # If command is unknown
         print(f"Unknown command: {command}")  # Print error message

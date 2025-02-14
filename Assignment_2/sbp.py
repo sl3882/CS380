@@ -201,6 +201,8 @@ def main():  # Main function
             print(f"({piece}, {direction})")  # Print each move
             puzzle.board = state  # Update board state
             puzzle.print_board()  # Print updated board
+
+
     elif command == "bfs":
         puzzle.load_board(filename)
         puzzle.normalize()
