@@ -68,26 +68,16 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     moves.append((piece, direction))  # Add valid move to list
         return moves  # Return list of available moves
 
-    # def apply_move(self, piece, direction):  # Method to apply a move
-    #     cells = self.get_piece_cells(piece)  # Get coordinates of the piece
-    #     dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
-    #
-    #     for x, y in cells:  # Iterate over piece cells
-    #         self.board[y][x] = 0 if self.board[y][x] != -1 else -1  # Clear old position
-    #
-    #     for x, y in cells:  # Iterate over piece cells
-    #         self.board[y + dy][x + dx] = piece  # Set new position
-    def apply_move(self, piece, direction):
-        cells = self.get_piece_cells(piece)
-        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
+    def apply_move(self, piece, direction):  # Method to apply a move
+        cells = self.get_piece_cells(piece)  # Get coordinates of the piece
+        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
 
-        for x, y in cells:
-            self.board[y][x] = 0 if self.board[y][x] != -1 else -1
+        for x, y in cells:  # Iterate over piece cells
+            self.board[y][x] = 0 if self.board[y][x] != -1 else -1  # Clear old position
 
-        for x, y in cells:
-            new_x, new_y = x + dx, y + dy
-            if 0 <= new_x < self.width and 0 <= new_y < self.height:
-                self.board[new_y][new_x] = piece
+        for x, y in cells:  # Iterate over piece cells
+            self.board[y + dy][x + dx] = piece  # Set new position
+
     def compare_board(self, other_board):  # Method to compare this board with another
         if len(self.board) != len(other_board) or len(self.board[0]) != len(
                 other_board[0]):  # Check if dimensions match
@@ -129,25 +119,31 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         start_time = time.time()
 
         # Queue entries will contain: (moves_list, board_state)
+        start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        visited = set()  # Using a set for faster lookups
-        visited.add(tuple(tuple(row) for row in initial_state))  # Convert board to tuple of tuples for hashing
+        visited = [initial_state]
         nodes_explored = 0
 
         while queue:
+
             moves_list, current_state = queue.popleft()
             nodes_explored += 1
 
-            self.board = current_state
-            if self.is_done():
+            temp_puzzle = Sbp()
+            temp_puzzle.width = self.width
+            temp_puzzle.height = self.height
+            temp_puzzle.board = current_state
+
+            # Check if current state is solution
+            if temp_puzzle.is_done():
                 end_time = time.time()
                 # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
                 print()
                 # Print final state
-                self.print_board()
+                temp_puzzle.print_board()
                 print()
                 # Print statistics
                 print(nodes_explored)
@@ -156,20 +152,30 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 return True
 
             # Try each possible move
-            for piece, direction in self.available_moves():
-                self.board = self.clone_state()
-                self.apply_move(piece, direction)
-                self.normalize()
-                new_state = self.clone_state()
+            for piece, direction in temp_puzzle.available_moves():
+                # Create new puzzle state
+                new_puzzle = Sbp()
+                new_puzzle.width = self.width
+                new_puzzle.height = self.height
+                new_puzzle.board = [row[:] for row in current_state]
+
+                # Apply the move
+                new_puzzle.apply_move(piece, direction)
+                new_puzzle.normalize()
 
                 # Check if we've seen this state before
-                new_state_tuple = tuple(tuple(row) for row in new_state)
-                if new_state_tuple not in visited:
-                    visited.add(new_state_tuple)
-                    queue.append((moves_list + [(piece, direction)], new_state))
+                is_new_state = True
+                for visited_state in visited:
+                    if new_puzzle.compare_board(visited_state):
+                        is_new_state = False
+                        break
+
+                if is_new_state:
+                    visited.append(new_puzzle.board)
+                    new_moves = moves_list + [(piece, direction)]
+                    queue.append((new_moves, new_puzzle.board))
 
         return False
-
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
