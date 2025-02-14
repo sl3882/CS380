@@ -112,24 +112,26 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
     def bfs(self):
         """Perform breadth-first search to find solution"""
         start_time = time.time()
-        queue = deque([([], self.clone_state())])  # Queue of (moves, state) pairs
-        visited = {self.serialize_board()}  # Set of visited states
+
+        # Queue entries will contain: (moves_list, board_state)
+        queue = deque([([], self.clone_state())])
+        visited = [self.clone_state()]
         nodes_explored = 0
 
         while queue:
             moves_list, current_state = queue.popleft()
             nodes_explored += 1
 
-            # Create temporary puzzle with current state for checking moves
+            # Set up temporary puzzle with current state
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
             temp_puzzle.board = current_state
 
-            # Check if puzzle is solved
+            # Check if current state is solution
             if temp_puzzle.is_done():
                 end_time = time.time()
-                # Print moves
+                # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
                 # Print final state
@@ -140,11 +142,9 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 print(len(moves_list))
                 return True
 
-            # Get available moves from current state
-            available_moves = temp_puzzle.available_moves()
-
-            for piece, direction in available_moves:
-                # Create new puzzle state for this move
+            # Try each possible move
+            for piece, direction in temp_puzzle.available_moves():
+                # Create new puzzle state
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
@@ -154,14 +154,19 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                # Check if this state has been visited
-                state_str = new_puzzle.serialize_board()
-                if state_str not in visited:
-                    visited.add(state_str)
+                # Check if we've seen this state before
+                is_new_state = True
+                for visited_state in visited:
+                    if new_puzzle.compare_board(visited_state):
+                        is_new_state = False
+                        break
+
+                if is_new_state:
+                    visited.append(new_puzzle.board)
                     new_moves = moves_list + [(piece, direction)]
                     queue.append((new_moves, new_puzzle.board))
 
-        return False  # No solution found
+        return False
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows

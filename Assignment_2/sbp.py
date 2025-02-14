@@ -109,36 +109,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             self.normalize()  # Normalize the board
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
-    def bfs(self):
-        start_time = time.time()
-        visited = set()
-        queue = deque([(self.clone_state(), [], 0)])
-        visited.add(str(self.board))
 
-        while queue:
-            current_state, move_history, node_count = queue.popleft()
-            self.board = current_state
-
-            # Check if the puzzle is solved
-            if self.is_done():
-                end_time = time.time()
-                spent_time = round(end_time - start_time, 2)
-                print("\n".join([f"({move[0]}, {move[1]})" for move in move_history]))
-                self.print_board()
-                print(f"Number of nodes explored: {node_count}")
-                print(f"Time taken to find the solution: {spent_time} seconds")
-                print(f"Length of the solution: {len(move_history)}")
-                return
-
-            # Explore all available moves
-            for piece, direction in self.available_moves():
-                self.apply_move(piece, direction)
-                state_str = str(self.board)
-                if state_str not in visited:
-                    visited.add(state_str)
-                    queue.append((self.clone_state(), move_history + [(piece, direction)], node_count + 1))
-
-        print("No solution found.")
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
@@ -203,10 +174,6 @@ def main():  # Main function
             puzzle.print_board()  # Print updated board
 
 
-    elif command == "bfs":
-        puzzle.load_board(filename)
-        puzzle.normalize()
-        puzzle.bfs()
 
     else:  # If command is unknown
         print(f"Unknown command: {command}")  # Print error message
