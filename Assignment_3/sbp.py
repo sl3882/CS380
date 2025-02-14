@@ -175,17 +175,21 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     queue.append((new_moves, new_puzzle.board))
 
         return False
-    def dfs(self, depth_limit=50):
+    def dfs(self, depth_limit=1000):
         start_time = time.time()
         initial_state = self.clone_state()
-        stack = [([], initial_state, 0)]  # Stack to hold (moves_list, current_state, current_depth)
-        visited = [initial_state]
+        visited = {str(initial_state): None}  # Use string representation of state as key
         nodes_explored = 0
 
-        while stack:
-            moves_list, current_state, current_depth = stack.pop()
+        def dfs_recursive(current_state, depth, moves_list):
+            nonlocal nodes_explored
+
+            if depth >= depth_limit:
+                return None
+
             nodes_explored += 1
 
+            # Create temporary puzzle with current state
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
@@ -205,34 +209,40 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 print(nodes_explored)
                 print(f"{end_time - start_time:.2f}")
                 print(len(moves_list))
-                return True
+                return moves_list
 
-            if current_depth < depth_limit:
-                # Try each possible move
-                for piece, direction in temp_puzzle.available_moves():
-                    # Create new puzzle state
-                    new_puzzle = Sbp()
-                    new_puzzle.width = self.width
-                    new_puzzle.height = self.height
-                    new_puzzle.board = [row[:] for row in current_state]
+            # Try each possible move
+            for piece, direction in temp_puzzle.available_moves():
+                # Create new puzzle state
+                new_puzzle = Sbp()
+                new_puzzle.width = self.width
+                new_puzzle.height = self.height
+                new_puzzle.board = [row[:] for row in current_state]
 
-                    # Apply the move
-                    new_puzzle.apply_move(piece, direction)
-                    new_puzzle.normalize()
+                # Apply the move
+                new_puzzle.apply_move(piece, direction)
+                new_puzzle.normalize()
 
-                    # Check if we've seen this state before
-                    is_new_state = True
-                    for visited_state in visited:
-                        if new_puzzle.compare_board(visited_state):
-                            is_new_state = False
-                            break
+                # Convert state to string for efficient lookup
+                state_str = str(new_puzzle.board)
 
-                    if is_new_state:
-                        visited.append(new_puzzle.board)
-                        new_moves = moves_list + [(piece, direction)]
-                        stack.append((new_moves, new_puzzle.board, current_depth + 1))
+                # Check if we've seen this state before
+                if state_str not in visited:
+                    visited[state_str] = current_state
+                    result = dfs_recursive(new_puzzle.board, depth + 1, moves_list + [(piece, direction)])
+                    if result is not None:
+                        return result
 
-        return False
+            return None
+
+        # Start the recursive DFS
+        solution = dfs_recursive(initial_state, 0, [])
+
+        if solution is None:
+            print("No solution found within depth limit")
+            return False
+
+        return True
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
