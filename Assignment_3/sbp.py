@@ -39,7 +39,6 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     cells.append((x, y))  # Add coordinates to cells list
         return cells  # Return list of coordinates
 
-
     def can_move(self, piece, direction):  # Method to check if a move is valid
         cells = self.get_piece_cells(piece)  # Get coordinates of the piece
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
@@ -126,7 +125,6 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         visited = [initial_state]
         nodes_explored = 0
 
-
         while queue:
 
             moves_list, current_state = queue.popleft()
@@ -166,9 +164,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     visited.append(new_state)
                     queue.append((moves_list + [(piece, direction)], new_state))
 
-
         return False
-
 
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
