@@ -119,14 +119,13 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         start_time = time.time()
 
         # Queue entries will contain: (moves_list, board_state)
-        start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        visited = [initial_state]
+        visited = set()  # Using a set for faster lookups
+        visited.add(tuple(tuple(row) for row in initial_state))  # Convert board to tuple of tuples for hashing
         nodes_explored = 0
 
         while queue:
-
             moves_list, current_state = queue.popleft()
             nodes_explored += 1
 
@@ -154,14 +153,9 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 new_state = self.clone_state()
 
                 # Check if we've seen this state before
-                is_new_state = True
-                for visited_state in visited:
-                    if self.compare_board(visited_state):
-                        is_new_state = False
-                        break
-
-                if is_new_state:
-                    visited.append(new_state)
+                new_state_tuple = tuple(tuple(row) for row in new_state)
+                if new_state_tuple not in visited:
+                    visited.add(new_state_tuple)
                     queue.append((moves_list + [(piece, direction)], new_state))
 
         return False
