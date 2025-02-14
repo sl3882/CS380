@@ -119,63 +119,62 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         start_time = time.time()
 
         # Queue entries will contain: (moves_list, board_state)
-        start_time = time.time()
         initial_state = self.clone_state()
-        queue = deque([([], initial_state)])
-        visited = [initial_state]
-        nodes_explored = 0
+        queue = deque([([], initial_state)])  # Queue holds a tuple of (move history, board state)
+        visited = [initial_state]  # List to track visited board states
+        nodes_explored = 0  # Variable to count the number of nodes explored
 
         while queue:
-
-            moves_list, current_state = queue.popleft()
-            nodes_explored += 1
+            moves_list, current_state = queue.popleft()  # Dequeue the next move sequence and board state
+            nodes_explored += 1  # Increment nodes explored on each dequeue
 
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
-            temp_puzzle.board = current_state
+            temp_puzzle.board = current_state  # Create a temporary puzzle with current state
 
-            # Check if current state is solution
+            # Check if current state is the solution
             if temp_puzzle.is_done():
-                end_time = time.time()
+                end_time = time.time()  # Record end time when solution is found
                 # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
-                print()
-                # Print final state
+                print()  # Print empty line
+                # Print final board state
                 temp_puzzle.print_board()
-                print()
+                print()  # Print empty line
                 # Print statistics
-                print(nodes_explored)
-                print(f"{end_time - start_time:.2f}")
-                print(len(moves_list))
+                print(nodes_explored)  # Number of nodes explored
+                print(f"{end_time - start_time:.2f}")  # Time taken
+                print(len(moves_list))  # Number of moves in the solution
                 return True
 
-            # Try each possible move
+            # Try each possible move from the current state
             for piece, direction in temp_puzzle.available_moves():
-                # Create new puzzle state
+                # Create a new puzzle state for each possible move
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
-                new_puzzle.board = [row[:] for row in current_state]
+                new_puzzle.board = [row[:] for row in current_state]  # Copy current state
 
-                # Apply the move
+                # Apply the move to this new state
                 new_puzzle.apply_move(piece, direction)
-                new_puzzle.normalize()
+                new_puzzle.normalize()  # Normalize the board after the move
 
-                # Check if we've seen this state before
+                # Check if the new state has been visited before
                 is_new_state = True
                 for visited_state in visited:
-                    if new_puzzle.compare_board(visited_state):
+                    if new_puzzle.compare_board(visited_state):  # Compare board with visited states
                         is_new_state = False
-                        break
+                        break  # If it's already visited, don't add it again
 
                 if is_new_state:
-                    visited.append(new_puzzle.board)
-                    new_moves = moves_list + [(piece, direction)]
-                    queue.append((new_moves, new_puzzle.board))
+                    visited.append(new_puzzle.board)  # Mark new state as visited
+                    new_moves = moves_list + [(piece, direction)]  # Add this move to the history
+                    queue.append((new_moves, new_puzzle.board))  # Enqueue the new state
 
-        return False
+        return False  # Return False if no solution is found
+
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
