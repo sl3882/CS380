@@ -39,18 +39,6 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     cells.append((x, y))  # Add coordinates to cells list
         return cells  # Return list of coordinates
 
-    # def can_move(self, piece, direction):  # Method to check if a move is valid
-    #     cells = self.get_piece_cells(piece)  # Get coordinates of the piece
-    #     dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
-    #
-    #     for x, y in cells:  # Iterate over piece cells
-    #         new_x, new_y = x + dx, y + dy  # Calculate new position
-    #         if not (0 <= new_x < self.width and 0 <= new_y < self.height):  # Check if new position is within bounds
-    #             return False  # Return False if out of bounds
-    #         if self.board[new_y][new_x] not in [0, -1] and (
-    #                 new_x, new_y) not in cells:  # Check if new position is occupied
-    #             return False  # Return False if occupied by another piece
-    #     return True  # Return True if move is valid
 
     def can_move(self, piece, direction):  # Method to check if a move is valid
         cells = self.get_piece_cells(piece)  # Get coordinates of the piece
@@ -132,35 +120,27 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         start_time = time.time()
 
         # Queue entries will contain: (moves_list, board_state)
-        queue = deque([([], self.clone_state())])
-        visited = [self.clone_state()]
+        start_time = time.time()
+        initial_state = self.clone_state()
+        queue = deque([([], initial_state)])
+        visited = [initial_state]
         nodes_explored = 0
 
+
         while queue:
-            nodes_explored += 1
+
             moves_list, current_state = queue.popleft()
+            nodes_explored += 1
 
-
-
-            # Log the current state and moves
-            print(f"Exploring state: {nodes_explored}, Moves so far: {moves_list}")
-            # Set up temporary puzzle with current state
-
-
-            temp_puzzle = Sbp()
-            temp_puzzle.width = self.width
-            temp_puzzle.height = self.height
-            temp_puzzle.board = current_state
-
-            # Check if current state is solution
-            if temp_puzzle.is_done():
+            self.board = current_state
+            if self.is_done():
                 end_time = time.time()
                 # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
                 print()
                 # Print final state
-                temp_puzzle.print_board()
+                self.print_board()
                 print()
                 # Print statistics
                 print(nodes_explored)
@@ -169,30 +149,27 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 return True
 
             # Try each possible move
-            for piece, direction in temp_puzzle.available_moves():
-                # Create new puzzle state
-                new_puzzle = Sbp()
-                new_puzzle.width = self.width
-                new_puzzle.height = self.height
-                new_puzzle.board = [row[:] for row in current_state]
-
-                # Apply the move
-                new_puzzle.apply_move(piece, direction)
-                new_puzzle.normalize()
+            for piece, direction in self.available_moves():
+                self.board = self.clone_state()
+                self.apply_move(piece, direction)
+                self.normalize()
+                new_state = self.clone_state()
 
                 # Check if we've seen this state before
                 is_new_state = True
                 for visited_state in visited:
-                    if new_puzzle.compare_board(visited_state):
+                    if self.compare_board(visited_state):
                         is_new_state = False
                         break
 
                 if is_new_state:
-                    visited.append(new_puzzle.board)
-                    new_moves = moves_list + [(piece, direction)]
-                    queue.append((new_moves, new_puzzle.board))
+                    visited.append(new_state)
+                    queue.append((moves_list + [(piece, direction)], new_state))
+
 
         return False
+
+
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
