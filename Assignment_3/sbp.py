@@ -137,8 +137,9 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         nodes_explored = 0
 
         while queue:
-            moves_list, current_state = queue.popleft()
             nodes_explored += 1
+            moves_list, current_state = queue.popleft()
+
 
 
             # Log the current state and moves
