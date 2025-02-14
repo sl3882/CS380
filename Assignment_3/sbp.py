@@ -115,58 +115,59 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
     def bfs(self):
-        """Perform breadth-first search to find solution"""
         start_time = time.time()
-
-        initial_state = tuple(tuple(row) for row in self.board)
+        initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        visited = {initial_state}
+        visited = {self.board_to_tuple(initial_state)}  # Use a set for visited states
         nodes_explored = 0
+        max_nodes = 100000  # Limit the number of explored nodes
 
         while queue:
             moves_list, current_state = queue.popleft()
             nodes_explored += 1
 
+            if nodes_explored > max_nodes:
+                print("Exceeded maximum nodes explored.")
+                return False
+
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
-            temp_puzzle.board = [list(row) for row in current_state]
+            temp_puzzle.board = current_state
 
             if temp_puzzle.is_done():
                 end_time = time.time()
-                print("Solution:")
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
                 print()
-                print("Final State:")
                 temp_puzzle.print_board()
                 print()
-                print("Statistics:")
-                print(f"Nodes Explored: {nodes_explored}")
-                print(f"Time Taken: {end_time - start_time:.2f} seconds")
-                print(f"Moves Required: {len(moves_list)}")
+                print(nodes_explored)
+                print(f"{end_time - start_time:.2f}")
+                print(len(moves_list))
                 return True
 
             for piece, direction in temp_puzzle.available_moves():
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
-                new_puzzle.board = [list(row) for row in current_state]
-
+                new_puzzle.board = [row[:] for row in current_state]
                 new_puzzle.apply_move(piece, direction)
-                new_state_tuple = tuple(tuple(row) for row in new_puzzle.board) # keep the raw state before normalization
+                new_puzzle.normalize()
 
-                new_puzzle.normalize() # normalize for visited check
-                normalized_new_state_tuple = tuple(tuple(row) for row in new_puzzle.board)
+                new_state_tuple = self.board_to_tuple(new_puzzle.board)  # Convert board to tuple
 
-                if normalized_new_state_tuple not in visited: # check if NORMALIZED state is visited
-                    visited.add(normalized_new_state_tuple) # add NORMALIZED state to visited
+                if new_state_tuple not in visited:  # Check if visited using the tuple
+                    visited.add(new_state_tuple)
                     new_moves = moves_list + [(piece, direction)]
-                    queue.append((new_moves, new_state_tuple)) # queue the RAW state
+                    queue.append((new_moves, new_puzzle.board))
 
+        print("No solution found.")
         return False
 
-
+    def board_to_tuple(self, board):
+        """Converts a 2D board (list of lists) to a tuple of tuples for hashing."""
+        return tuple(tuple(row) for row in board)
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
