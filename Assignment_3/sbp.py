@@ -270,11 +270,11 @@ def main():  # Main function
 
     elif command == "bfs":
         puzzle.load_board(filename)
-        # puzzle.normalize()
+        puzzle.normalize()
         puzzle.bfs()
     elif command == "dfs":
         puzzle.load_board(filename)
-        # puzzle.normalize()
+        puzzle.normalize()
         puzzle.dfs()
 
     else:  # If command is unknown
