@@ -117,7 +117,7 @@ class Sbp:
         start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        visited = set(initial_state)  # Using set for faster lookups
+        visited = [initial_state]
         nodes_explored = 0
 
         while queue:
@@ -160,7 +160,8 @@ class Sbp:
         start_time = time.time()
         initial_state = self.clone_state()
         stack = [([], initial_state, 0)]
-        visited = set(initial_state)  # Using set for faster lookups
+        visited = [initial_state]
+
         nodes_explored = 0
 
         while stack:
