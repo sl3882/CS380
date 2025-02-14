@@ -117,7 +117,7 @@ class Sbp:
         start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        visited = set([tuple(map(tuple, initial_state))])  # Using set for faster lookups
+        visited = set(initial_state)  # Using set for faster lookups
         nodes_explored = 0
 
         while queue:
@@ -160,7 +160,7 @@ class Sbp:
         start_time = time.time()
         initial_state = self.clone_state()
         stack = [([], initial_state, 0)]
-        visited = set([tuple(map(tuple, initial_state))])
+        visited = set(initial_state)  # Using set for faster lookups
         nodes_explored = 0
 
         while stack:
@@ -264,8 +264,12 @@ def main():  # Main function
 
     elif command == "bfs":
         puzzle.load_board(filename)
-        puzzle.normalize()
+        # puzzle.normalize()
         puzzle.bfs()
+    elif command == "dfs":
+        puzzle.load_board(filename)
+        # puzzle.normalize()
+        puzzle.dfs()
 
     else:  # If command is unknown
         print(f"Unknown command: {command}")  # Print error message
