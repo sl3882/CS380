@@ -144,9 +144,10 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 temp_puzzle.print_board()
                 print()
                 # Print statistics
-                print(f"Nodes explored: {nodes_explored}")
-                print(f"Time taken: {end_time - start_time:.2f} seconds")
-                print(f"Moves: {len(moves_list)}")
+                print(nodes_explored)
+                print(f"{end_time - start_time:.2f}")
+
+                print(len(moves_list))
                 return True  # Return True when a solution is found
 
             # Try each possible move
