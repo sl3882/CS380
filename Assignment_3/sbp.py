@@ -115,10 +115,13 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
     def bfs(self):
+        """Perform breadth-first search to find solution"""
         start_time = time.time()
-        initial_state = tuple(tuple(row) for row in self.board)  # Convert to tuple of tuples for hashing
+
+        # Queue entries will contain: (moves_list, board_state)
+        initial_state = tuple(tuple(row) for row in self.board)  # Tuple of tuples for hashing
         queue = deque([([], initial_state)])
-        visited = {initial_state}  # Use a set for visited states
+        visited = {initial_state}  # Set for visited states
         nodes_explored = 0
 
         while queue:
@@ -132,7 +135,17 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
 
             if temp_puzzle.is_done():
                 end_time = time.time()
-                # ... (rest of the printing code remains the same)
+                print("Solution:")
+                for piece, direction in moves_list:
+                    print(f"({piece},{direction})")
+                print()
+                print("Final State:")
+                temp_puzzle.print_board()
+                print()
+                print("Statistics:")
+                print(f"Nodes Explored: {nodes_explored}")
+                print(f"Time Taken: {end_time - start_time:.2f} seconds")
+                print(f"Moves Required: {len(moves_list)}")
                 return True
 
             for piece, direction in temp_puzzle.available_moves():
@@ -143,14 +156,14 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
 
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
-                new_state_tuple = tuple(tuple(row) for row in new_puzzle.board)  # Convert to tuple of tuples
+                new_state_tuple = tuple(tuple(row) for row in new_puzzle.board)  # Tuple of tuples
 
                 if new_state_tuple not in visited:
                     visited.add(new_state_tuple)
                     new_moves = moves_list + [(piece, direction)]
                     queue.append((new_moves, new_state_tuple))
 
-        return False
+        return False  # No solution found
 
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
