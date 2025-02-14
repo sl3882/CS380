@@ -274,5 +274,3 @@ if __name__ == "__main__":  # If script is run directly
     main()  # Call main function
 
 
-if __name__ == "__main__":
-    main()
