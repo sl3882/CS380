@@ -110,6 +110,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
             print(",".join(map(str, row)))  # Print each row as comma-separated values
+            print(",")
 
 def main():  # Main function
     if len(sys.argv) < 3:  # Check if enough command-line arguments are provided
