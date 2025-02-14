@@ -114,49 +114,6 @@ class Sbp:
                     next_idx += 1
 
     def bfs(self):
-        start_time = time.time()
-        initial_state = self.clone_state()
-        queue = deque([([], initial_state)])
-        visited = [initial_state]
-        nodes_explored = 0
-
-        while queue:
-            moves_list, current_state = queue.popleft()
-            nodes_explored += 1
-            temp_puzzle = Sbp()
-            temp_puzzle.width = self.width
-            temp_puzzle.height = self.height
-            temp_puzzle.board = current_state
-
-            if temp_puzzle.is_done():
-                end_time = time.time()
-                for piece, direction in moves_list:
-                    print(f"({piece},{direction})")
-                print()
-                temp_puzzle.print_board()
-                print()
-                print(nodes_explored)
-                print(f"{end_time - start_time:.2f}")
-                print(len(moves_list))
-                return True
-
-            for piece, direction in temp_puzzle.available_moves():
-                new_puzzle = Sbp()
-                new_puzzle.width = self.width
-                new_puzzle.height = self.height
-                new_puzzle.board = [row[:] for row in current_state]
-                new_puzzle.apply_move(piece, direction)
-
-                new_state_tuple = tuple(map(tuple, new_puzzle.board))
-                if new_state_tuple not in visited:
-                    visited.add(new_state_tuple)
-                    new_moves = moves_list + [(piece, direction)]
-                    queue.append((new_moves, new_puzzle.board))
-
-        print("No solution found.")
-        return False
-
-    def bfs(self):
         """Perform breadth-first search to find solution"""
         start_time = time.time()
 
