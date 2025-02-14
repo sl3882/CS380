@@ -39,6 +39,19 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     cells.append((x, y))  # Add coordinates to cells list
         return cells  # Return list of coordinates
 
+    # def can_move(self, piece, direction):  # Method to check if a move is valid
+    #     cells = self.get_piece_cells(piece)  # Get coordinates of the piece
+    #     dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
+    #
+    #     for x, y in cells:  # Iterate over piece cells
+    #         new_x, new_y = x + dx, y + dy  # Calculate new position
+    #         if not (0 <= new_x < self.width and 0 <= new_y < self.height):  # Check if new position is within bounds
+    #             return False  # Return False if out of bounds
+    #         if self.board[new_y][new_x] not in [0, -1] and (
+    #                 new_x, new_y) not in cells:  # Check if new position is occupied
+    #             return False  # Return False if occupied by another piece
+    #     return True  # Return True if move is valid
+
     def can_move(self, piece, direction):  # Method to check if a move is valid
         cells = self.get_piece_cells(piece)  # Get coordinates of the piece
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
@@ -48,8 +61,13 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):  # Check if new position is within bounds
                 return False  # Return False if out of bounds
             if self.board[new_y][new_x] not in [0, -1] and (
-                    new_x, new_y) not in cells:  # Check if new position is occupied
+                    new_x, new_y) not in cells:  # Check if new position is occupied by another piece
                 return False  # Return False if occupied by another piece
+
+            # Allow piece 2 to move into the empty space (-1)
+            if self.board[new_y][new_x] == -1 and piece != 2:
+                return False  # Return False if a piece other than 2 is trying to move into empty space (-1)
+
         return True  # Return True if move is valid
 
     def available_moves(self):  # Method to get all available moves
