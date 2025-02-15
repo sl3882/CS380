@@ -92,16 +92,26 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     moves.append((piece, direction))  # Add valid move to list
         return moves  # Return list of available moves
 
-    def apply_move(self, piece, direction):  # Method to apply a move
-        cells = self.get_piece_cells(piece)  # Get coordinates of the piece
-        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
+    # def apply_move(self, piece, direction):  # Method to apply a move
+    #     cells = self.get_piece_cells(piece)  # Get coordinates of the piece
+    #     dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
+    #
+    #     for x, y in cells:  # Iterate over piece cells
+    #         self.board[y][x] = 0 if self.board[y][x] != -1 else -1  # Clear old position
+    #
+    #     for x, y in cells:  # Iterate over piece cells
+    #         self.board[y + dy][x + dx] = piece  # Set new position
+    def apply_move(self, piece, direction):
+        cells = self.get_piece_cells(piece)
+        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        for x, y in cells:  # Iterate over piece cells
-            self.board[y][x] = 0 if self.board[y][x] != -1 else -1  # Clear old position
+        # Clear old positions
+        for x, y in cells:
+            self.board[y][x] = 0 if self.board[y][x] != -1 else -1
 
-        for x, y in cells:  # Iterate over piece cells
-            self.board[y + dy][x + dx] = piece  # Set new position
-
+        # Set new positions
+        for x, y in cells:
+            self.board[y + dy][x + dx] = piece
     def compare_board(self, other_board):  # Method to compare this board with another
         if len(self.board) != len(other_board) or len(self.board[0]) != len(
                 other_board[0]):  # Check if dimensions match
