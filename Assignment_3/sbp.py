@@ -48,7 +48,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             # Allow piece 2 to move into the empty space (-1)
             if self.board[new_y][new_x] == -1 and piece != 2:
                 return False  # Return False if a piece other than 2 is trying to move into empty space (-1)
-            if not (1 <= new_x < self.width and 1 <= new_y < self.height):  # Check if new position is within bounds
+            if not (0 <= new_x < self.width and 0 <= new_y < self.height):  # Check if new position is within bounds
                 return False  # Return False if out of bounds
             if self.board[new_y][new_x] not in [0, -1] and (
                     new_x, new_y) not in cells:  # Check if new position is occupied by another piece
