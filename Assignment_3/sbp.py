@@ -116,7 +116,6 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         return history  # Return move history
 
     def bfs(self):
-
         start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
@@ -190,7 +189,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             temp_puzzle.board = current_state
 
             if temp_puzzle.is_done():
-                nodes_explored += 1
+                # nodes_explored += 1
                 end_time = time.time()
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
@@ -211,17 +210,22 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                # Check if we've seen this state before
-                is_new_state = True
-                for visited_state in visited:
-                    if new_puzzle.compare_board(visited_state):
-                        is_new_state = False
-                        break
 
-                if is_new_state:
+                if not any(new_puzzle.compare_board(state) for state in visited):
                     visited.append(new_puzzle.board)
                     new_moves = moves_list + [(piece, direction)]
                     stack.append((new_moves, new_puzzle.board))
+                # # Check if we've seen this state before
+                # is_new_state = True
+                # for visited_state in visited:
+                #     if new_puzzle.compare_board(visited_state):
+                #         is_new_state = False
+                #         break
+                #
+                # if is_new_state:
+                #     visited.append(new_puzzle.board)
+                #     new_moves = moves_list + [(piece, direction)]
+                #     stack.append((new_moves, new_puzzle.board))
 
         return False
     def print_board(self):  # Method to print the board
