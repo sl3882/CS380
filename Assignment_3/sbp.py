@@ -116,7 +116,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         return history  # Return move history
 
     def bfs(self):
-           # Queue entries will contain: (moves_list, board_state)
+
         start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
@@ -124,7 +124,6 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         nodes_explored = 0
 
         while queue:
-
             moves_list, current_state = queue.popleft()
             nodes_explored += 1
 
@@ -133,14 +132,15 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             temp_puzzle.height = self.height
             temp_puzzle.board = current_state
 
-            # Check if current state is solution
+
             if temp_puzzle.is_done():
+                nodes_explored += 1
                 end_time = time.time()
                 # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
                 print()
-                # Print final state
+
                 temp_puzzle.print_board()
                 print()
                 # Print statistics
