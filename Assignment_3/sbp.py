@@ -132,7 +132,6 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             temp_puzzle.height = self.height
             temp_puzzle.board = current_state
 
-
             if temp_puzzle.is_done():
                 nodes_explored += 1
                 end_time = time.time()
@@ -174,16 +173,15 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     queue.append((new_moves, new_puzzle.board))
 
         return False
-    def dfs(self, depth_limit=50):
+    def dfs(self):
         start_time = time.time()
         initial_state = self.clone_state()
-        stack = [([], initial_state, 0)]
-        visited = set()
-        visited.add(tuple(map(tuple, initial_state)))
-        nodes_explored = 0
+        stack = [([], initial_state)]
+        visited = [initial_state]
+        nodes_explored = 1
 
         while stack:
-            moves_list, current_state, current_depth = stack.pop()
+            moves_list, current_state = stack.pop()
             nodes_explored += 1
 
             temp_puzzle = Sbp()
@@ -192,6 +190,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             temp_puzzle.board = current_state
 
             if temp_puzzle.is_done():
+                nodes_explored += 1
                 end_time = time.time()
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
@@ -203,20 +202,26 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 print(len(moves_list))
                 return True
 
-            if current_depth < depth_limit:
-                for piece, direction in temp_puzzle.available_moves():
-                    new_puzzle = Sbp()
-                    new_puzzle.width = self.width
-                    new_puzzle.height = self.height
-                    new_puzzle.board = temp_puzzle.clone_state()
-                    new_puzzle.apply_move(piece, direction)
-                    new_puzzle.normalize()
+            for piece, direction in temp_puzzle.available_moves():
+                new_puzzle = Sbp()
+                new_puzzle.width = self.width
+                new_puzzle.height = self.height
 
-                    new_board_tuple = tuple(map(tuple, new_puzzle.board))
-                    if new_board_tuple not in visited:
-                        visited.add(new_board_tuple)
-                        new_moves = moves_list + [(piece, direction)]
-                        stack.append((new_moves, new_puzzle.board, current_depth + 1))
+                new_puzzle.board = temp_puzzle.clone_state()
+                new_puzzle.apply_move(piece, direction)
+                new_puzzle.normalize()
+
+                # Check if we've seen this state before
+                is_new_state = True
+                for visited_state in visited:
+                    if new_puzzle.compare_board(visited_state):
+                        is_new_state = False
+                        break
+
+                if is_new_state:
+                    visited.append(new_puzzle.board)
+                    new_moves = moves_list + [(piece, direction)]
+                    stack.append((new_moves, new_puzzle.board))
 
         return False
     def print_board(self):  # Method to print the board
