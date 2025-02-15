@@ -54,27 +54,33 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
     #                 new_x, new_y) not in cells:  # Check if new position is occupied by another piece
     #             return False  # Return False if occupied by another piece
     #     return True  # Return True if move is valid
+
     def can_move(self, piece, direction):
-        cells = self.get_piece_cells(piece)
+        cells = self.get_piece_cells(piece)  # Get coordinates of the piece
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
 
-            # Check if new position is within bounds
-            if not (0 <= new_x < self.width and 0 <= new_y < self.height):
-                return False
+            # Check if the new position is within valid board boundaries
+            if not (1 <= new_x <= self.width and 1 <= new_y <= self.height):
+                return False  # Move is out of bounds
 
-            # Allow piece 2 to move into the empty space (-1)
-            if self.board[new_y][new_x] == -1 and piece != 2:
-                return False
+            target_cell = self.board[new_y][new_x]  # The cell the piece wants to move into
 
-            # Check if new position is occupied by another piece
-            if self.board[new_y][new_x] not in [0, -1] and (new_x, new_y) not in cells:
-                return False
+            # Any piece can move into an empty cell (0)
+            if target_cell == 0:
+                continue  # This move is valid for this piece
 
-        return True
+            # Only piece 2 can move into the goal (-1)
+            if target_cell == -1 and piece != 2:
+                return False  # Other pieces cannot move into the goal
 
+            # If the target cell is occupied by another piece, block the move
+            if target_cell not in [0, -1] and (new_x, new_y) not in cells:
+                return False  # The move is blocked by another piece
+
+        return True  # If all checks pass, the move is valid
 
 
 
