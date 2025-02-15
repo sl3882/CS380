@@ -121,7 +121,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
         visited = [initial_state]
-        nodes_explored = 0
+        nodes_explored = 1
 
         while queue:
             moves_list, current_state = queue.popleft()
