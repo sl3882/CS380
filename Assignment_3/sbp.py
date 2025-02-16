@@ -195,17 +195,15 @@ class Sbp:
         print("No solution found")
         return
 
-
-
-    def dfs(self, filename):  # Increased depth limit
+    def dfs(self, filename, depth_limit=20):  # Added depth limit
         """Performs a depth-first search to solve the puzzle."""
-        depth_limit = 50
         start_time = time.time()
         self.load_board(filename)
         initial_state = self.clone_state()
+        visited = {self.board_to_tuple()}
         nodes_explored = 0
 
-        def recursive_dfs(state, moves, depth, visited):
+        def recursive_dfs(state, moves, depth):
             nonlocal nodes_explored
 
             nodes_explored += 1
@@ -214,12 +212,10 @@ class Sbp:
                 end_time = time.time()
                 elapsed_time = end_time - start_time
 
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
+                for move in moves:
+                    print(move)
 
                 state.print_board()
-                print()
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
@@ -236,15 +232,20 @@ class Sbp:
 
                 if new_board_tuple not in visited:
                     visited.add(new_board_tuple)
-                    if recursive_dfs(new_state, moves + [(piece, direction)], depth + 1, visited.copy()):
+                    if recursive_dfs(new_state, moves + [(piece, direction)], depth + 1):
                         return True  # Solution found in deeper recursion
+                    visited.remove(new_board_tuple)  # Backtrack: Remove from visited
+
+                # Debugging output
+                print(f"Exploring move: ({piece}, {direction})")
+                print(f"Current depth: {depth}")
+                print(f"Current board state:\n{new_state.board}")
 
             return False  # No solution found from this state
 
-        if not recursive_dfs(self, [], 0, {self.board_to_tuple()}):
+        if not recursive_dfs(self, [], 0):
             print("No solution found within depth limit")
         return
-
 
 
 
