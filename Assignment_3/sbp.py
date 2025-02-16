@@ -195,48 +195,51 @@ class Sbp:
         print("No solution found")
         return
 
-    def dfs(self, filename, depth_limit=100):
+    def dfs(self, filename, depth_limit=20):  # Added depth limit
         """Performs a depth-first search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
         initial_state = self.clone_state()
-        stack = [(self, [], 0)]  # Stack of (state, moves, current_depth)
-        visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 1
+        visited = {self.board_to_tuple()}
+        nodes_explored = 0
 
-        while stack:
-            current_state, moves, depth = stack.pop()
+        def recursive_dfs(state, moves, depth):
+            nonlocal nodes_explored
+
             nodes_explored += 1
 
-            if current_state.is_done():
+            if state.is_done():
                 end_time = time.time()
                 elapsed_time = end_time - start_time
 
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
+                for move in moves:
+                    print(move)
 
-                current_state.print_board()
-                print()
+                state.print_board()
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
-                return
+                return True  # Solution found
 
             if depth >= depth_limit:
-                continue  # Skip if depth limit is reached
+                return False  # Depth limit reached, backtrack
 
-            for piece, direction in current_state.available_moves():
-                new_state = current_state.clone_state()
+            for piece, direction in state.available_moves():
+                new_state = state.clone_state()
                 new_state.apply_move(piece, direction)
                 new_state.normalize()
                 new_board_tuple = new_state.board_to_tuple()
 
                 if new_board_tuple not in visited:
                     visited.add(new_board_tuple)
-                    stack.append((new_state, moves + [(piece, direction)], depth + 1))
+                    if recursive_dfs(new_state, moves + [(piece, direction)], depth + 1):
+                        return True  # Solution found in deeper recursion
+                    visited.remove(new_board_tuple)  # Backtrack: Remove from visited
 
-        print("No solution found")
+            return False  # No solution found from this state
+
+        if not recursive_dfs(self, [], 0):
+            print("No solution found within depth limit")
         return
 
 
