@@ -133,42 +133,59 @@ class Sbp:
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
 
-
     def bfs(self):
         """Breadth-First Search to solve the puzzle."""
         start_time = time.time()
-        start_state = self.clone_state()
-        queue = deque([(start_state, [], 0)])  # (state, path, depth)
+        initial_state = self.clone_state()
+        queue = deque([([], initial_state)])
         visited = set()
-        visited.add(self.state_to_tuple(start_state))
+        visited.add(self.state_to_tuple(initial_state))
         nodes_explored = 0
 
         while queue:
-            current_state, path, depth = queue.popleft()
-            self.board = current_state
+            moves_list, current_state = queue.popleft()
             nodes_explored += 1
 
-            if self.is_done():
-                end_time = time.time()
-                for move in path:
-                    print(f"({move[0]},{move[1]})")
-                self.print_board()
-                print(nodes_explored)
-                print("{:.2f}".format(end_time - start_time))
-                print(len(path))
-                return
+            temp_puzzle = Sbp()
+            temp_puzzle.width = self.width
+            temp_puzzle.height = self.height
+            temp_puzzle.board = current_state
 
-            for piece, direction in self.available_moves():
-                new_state = self.apply_move_and_return_new_state(piece, direction)
-                state_tuple = self.state_to_tuple(new_state.board)
+            if temp_puzzle.is_done():
+                end_time = time.time()
+                # Print the moves
+                for piece, direction in moves_list:
+                    print(f"({piece},{direction})")
+                print()
+
+                temp_puzzle.print_board()
+                print()
+                # Print statistics
+                print(nodes_explored)
+                print(f"{end_time - start_time:.2f}")
+                print(len(moves_list))
+                return True
+
+            # Try each possible move
+            for piece, direction in temp_puzzle.available_moves():
+                # Create new puzzle state
+                new_puzzle = Sbp()
+                new_puzzle.width = self.width
+                new_puzzle.height = self.height
+                new_puzzle.board = [row[:] for row in current_state]
+
+                # Apply the move
+                new_puzzle.apply_move(piece, direction)
+                new_puzzle.normalize()
+
+                # Check if we've seen this state before
+                state_tuple = self.state_to_tuple(new_puzzle.board)
                 if state_tuple not in visited:
                     visited.add(state_tuple)
-                    queue.append((new_state.board, path + [(piece, direction)], depth + 1))
+                    new_moves = moves_list + [(piece, direction)]
+                    queue.append((new_moves, new_puzzle.board))
 
-        print("No solution found.")
-        end_time = time.time()
-        print(nodes_explored)
-        print("{:.2f}".format(end_time - start_time))
+        return False
 
     def state_to_tuple(self, state):
         """Converts the board state to a tuple for hashing."""
