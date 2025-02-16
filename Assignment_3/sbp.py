@@ -111,7 +111,7 @@ class Sbp:
         """Prints the board."""
         print(f"{self.width},{self.height},")
         for row in self.board:
-            print(",".join(map(str, row)) + ",")
+            print(", ".join(map(str, row)) + ",")
 
     def compare_states(self, other):
         """Compares the current state with another state."""
