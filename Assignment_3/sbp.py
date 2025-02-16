@@ -1,5 +1,4 @@
 import sys
-import copy
 
 class SlidingBrickPuzzle:
     def __init__(self):
@@ -25,13 +24,6 @@ class SlidingBrickPuzzle:
         print(f"{self.width},{self.height},")
         for row in self.board:
             print(','.join(map(str, row)) + ',')
-
-    def clone_state(self):
-        cloned_puzzle = SlidingBrickPuzzle()
-        cloned_puzzle.width = self.width
-        cloned_puzzle.height = self.height
-        cloned_puzzle.board = copy.deepcopy(self.board)
-        return cloned_puzzle
 
 def main(command, filename=None):
     if command == "print" and filename:
