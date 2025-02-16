@@ -69,7 +69,7 @@ class Sbp:
     def available_moves(self):  # Method to get all available moves
         moves = []  # Initialize empty list for moves
         # Get pieces in sorted order for consistent move generation
-        pieces = sorted(set(val for row in self.board for val in row if val >= 2))
+        pieces = set(val for row in self.board for val in row if val >= 2)
         directions = ["up", "down", "left", "right"]  # List of possible directions
 
         for piece in pieces:  # Iterate over pieces
