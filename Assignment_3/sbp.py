@@ -57,16 +57,17 @@ class Sbp:
             max_c = max(c for _, c in positions)
 
             # Check movement in all four directions
-            if min_r > 0 and self.board[min_r - 1][min_c] == 0:  # Up
+            if min_r > 0 and all(self.board[r - 1][c] == 0 for r, c in positions):  # Up
                 moves.append((piece, "up"))
-            if max_r < self.height - 1 and self.board[max_r + 1][min_c] == 0:  # Down
+            if max_r < self.height - 1 and all(self.board[r + 1][c] == 0 for r, c in positions):  # Down
                 moves.append((piece, "down"))
-            if min_c > 0 and self.board[min_r][min_c - 1] == 0:  # Left
+            if min_c > 0 and all(self.board[r][c - 1] == 0 for r, c in positions):  # Left
                 moves.append((piece, "left"))
-            if max_c < self.width - 1 and self.board[min_r][max_c + 1] == 0:  # Right
+            if max_c < self.width - 1 and all(self.board[r][c + 1] == 0 for r, c in positions):  # Right
                 moves.append((piece, "right"))
 
         return moves
+
     def apply_move(self, piece, direction):
         """Applies the given move to the board if it is available."""
         if (piece, direction) not in self.available_moves():
@@ -91,6 +92,7 @@ class Sbp:
         new_state.board = self.clone_state()
         new_state.apply_move(piece, direction)
         return new_state
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: python3 sbp.py <command> <filename> [args]")
@@ -111,7 +113,6 @@ def main():
         moves = puzzle.available_moves()
         for move in moves:
             print(f"({move[0]}, {move[1]})")
-
     elif command == "applyMove":
         if len(sys.argv) < 4:
             print("Usage: python3 sbp.py applyMove <filename> <move>")
@@ -122,14 +123,6 @@ def main():
         puzzle.load_board(filename)
         new_state = puzzle.apply_move_and_return_new_state(piece, direction)
         new_state.print_board()
-
-
-
-
-
-
-
-
     else:
         print(f"Unknown command: {command}")
 
