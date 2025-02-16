@@ -246,53 +246,53 @@ def ids(self, filename):
     """Performs an iterative deepening search to solve the puzzle."""
     start_time = time.time()
     self.load_board(filename)
-    depth_limit = 0
+    initial_state = self.clone_state()
     nodes_explored = 0
 
+    def dls(state, depth):
+        nonlocal nodes_explored
+        nodes_explored += 1
+
+        if state.is_done():
+            return True, []
+
+        if depth == 0:
+            return False, []
+
+        for piece, direction in state.available_moves():
+            new_state = state.clone_state()
+            new_state.apply_move(piece, direction)
+            new_state.normalize()
+
+            found, moves = dls(new_state, depth - 1)
+            if found:
+                return True, [(piece, direction)] + moves
+
+        return False, []
+
+    depth = 0
     while True:
-        result = self.depth_limited_dfs(self, [], depth_limit, start_time, nodes_explored)
-        if result is not None:
-            return result
-        depth_limit += 1
+        found, moves = dls(self.clone_state(), depth)
+        if found:
+            end_time = time.time()
+            elapsed_time = end_time - start_time
 
-def depth_limited_dfs(self, state, moves, depth_limit, start_time, nodes_explored):
-    """Performs a depth-limited DFS."""
-    nodes_explored += 1
+            for piece, direction in moves:
+                print(f"({piece},{direction})")
+            print()
 
-    if state.is_done():
-        end_time = time.time()
-        elapsed_time = end_time - start_time
+            self.load_board(filename)
+            for piece, direction in moves:
+                self.apply_move(piece, direction)
+            self.print_board()
+            print()
 
-        # Print the moves in the required format
-        for piece, direction in moves:
-            print(f"({piece},{direction})")
-        print()
+            print(nodes_explored)
+            print(f"{elapsed_time:.2f}")
+            print(len(moves))
+            return
 
-        # Print the final state
-        state.print_board()
-        print()
-
-        # Print statistics
-        print(nodes_explored)
-        print(f"{elapsed_time:.2f}")
-        print(len(moves))
-        return moves
-
-    if depth_limit <= 0:
-        return None
-
-    # Explore available moves
-    for piece, direction in state.available_moves():
-        new_state = state.clone_state()
-        new_state.apply_move(piece, direction)
-        new_state.normalize()
-        new_board_tuple = new_state.board_to_tuple()
-
-        result = self.depth_limited_dfs(new_state, moves + [(piece, direction)], depth_limit - 1, start_time, nodes_explored)
-        if result is not None:
-            return result
-
-    return None
+        depth += 1
 
 
 
