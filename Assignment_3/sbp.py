@@ -54,27 +54,32 @@ class Sbp:
     def can_move(self, piece, direction):
         """Checks if a piece can move in a given direction."""
         cells = self.get_piece_cells(piece)
-        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
+        direction_map = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
+        dx, dy = direction_map[direction]
 
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
 
-            # Optimized boundary check (combined)
+            # Ensure we're within bounds and avoid walls or other pieces
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):
                 return False
 
             target_cell = self.board[new_y][new_x]
 
-            # Optimized target cell check (combined and simplified)
-            if target_cell == 1 or (target_cell == -1 and piece != 2):  # Wall or incorrect goal entry
-                return False
-
-            # Empty cell, move is okay. No need for explicit continue since the other conditions return.
+            # If it's empty (0), it's a valid move
             if target_cell == 0:
                 continue
 
-            # Check for collision with other pieces (excluding cells of the moving piece itself)
-            if target_cell > 1 and (new_x, new_y) not in cells:  # Use > 1 to include all other bricks
+            # If it's a wall (1), we cannot move there
+            if target_cell == 1:
+                return False
+
+            # If it's the goal (-1) and it's not the master brick, invalid move
+            if target_cell == -1 and piece != 2:
+                return False
+
+            # If it's another brick (value > 2), we can't move there unless it's not the piece's current cell
+            if target_cell > 2 and (new_x, new_y) not in cells:
                 return False
 
         return True
