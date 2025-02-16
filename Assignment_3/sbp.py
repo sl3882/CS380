@@ -13,127 +13,116 @@ class Sbp:
         try:
             with open(filename, 'r') as file:
                 content = file.read().strip()
-            # Parse width, height, and board
-            parts = content.split(",")  # Split content by commas
-            self.width = int(parts[0])  # Set width from first part
-            self.height = int(parts[1])  # Set height from second part
-            self.board = [  # Create 2D list for board
+            parts = content.split(",")
+            self.width = int(parts[0])
+            self.height = int(parts[1])
+            self.board = [
                 list(map(int, parts[i * self.width + 2:(i + 1) * self.width + 2]))
                 for i in range(self.height)
             ]
-        except Exception as e:  # Handle any exceptions
-            print(f"Error loading game state : {e}")  # Print error message
-            sys.exit(1)  # Exit the program with error code 1
+        except Exception as e:
+            print(f"Error loading game state : {e}")
+            sys.exit(1)
 
-    def clone_state(self):  # Method to create a deep copy of the board
-        return [row[:] for row in self.board]  # Return a new list of new lists
+    def clone_state(self):
+        return [row[:] for row in self.board]
 
-    def is_done(self):  # Method to check if the puzzle is solved
-        return not any(-1 in row for row in self.board)  # Check if any -1 (empty space) remains
+    def is_done(self):
+        return not any(-1 in row for row in self.board)
 
-    def get_piece_cells(self, piece):  # Method to get coordinates of a piece
-        cells = []  # Initialize empty list for cell coordinates
-        for y in range(self.height):  # Iterate over rows
-            for x in range(self.width):  # Iterate over columns
-                if self.board[y][x] == piece:  # If cell matches the piece
-                    cells.append((x, y))  # Add coordinates to cells list
-        return cells  # Return list of coordinates
+    def get_piece_cells(self, piece):
+        cells = []
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.board[y][x] == piece:
+                    cells.append((x, y))
+        return cells
 
     def can_move(self, piece, direction):
-        cells = self.get_piece_cells(piece)  # Get all (x, y) positions occupied by the piece
+        cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
         for x, y in cells:
-            new_x, new_y = x + dx, y + dy  # Compute new position
+            new_x, new_y = x + dx, y + dy
 
-            # Check if the move is within boundaries
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):
-                return False  # Out of bounds
+                return False
 
-            target_cell = self.board[new_y][new_x]  # Check what's in the target cell
+            target_cell = self.board[new_y][new_x]
 
-            # The piece can move into an empty cell (0)
             if target_cell == 0:
                 continue
 
-            # Only the master brick (2) can move into the goal (-1)
             if target_cell == -1 and piece != 2:
-                return False  # Other pieces cannot move into the goal
+                return False
 
-            # If the target cell is another brick or boundary, prevent movement
             if target_cell not in [0, -1] and (new_x, new_y) not in cells:
-                return False  # The move is blocked by another piece
+                return False
 
-        return True  # If all checks pass, the move is valid
+        return True
 
-    def available_moves(self):  # Method to get all available moves
-        moves = []  # Initialize empty list for moves
-        # Get pieces in sorted order for consistent move generation
+    def available_moves(self):
+        moves = []
         pieces = set(val for row in self.board for val in row if val >= 2)
-        directions = ["up", "down", "left", "right"]  # List of possible directions
+        directions = ["up", "down", "left", "right"]
 
-        for piece in pieces:  # Iterate over pieces
-            for direction in directions:  # Iterate over directions
-                if self.can_move(piece, direction):  # Check if move is valid
-                    moves.append((piece, direction))  # Add valid move to list
-        return moves  # Return list of available moves
+        for piece in pieces:
+            for direction in directions:
+                if self.can_move(piece, direction):
+                    moves.append((piece, direction))
+        return moves
 
     def apply_move(self, piece, direction):
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        # Store original board state to preserve goal cells
         old_positions = {(x, y): self.board[y][x] for x, y in cells}
 
-        # Clear old positions, ensuring goal cells remain
         for x, y in cells:
             if old_positions[(x, y)] == -1:
-                continue  # Keep goal cell unchanged
+                continue
             self.board[y][x] = 0
 
-        # Set new positions
         for x, y in cells:
             self.board[y + dy][x + dx] = piece
+
     def apply_move_and_return_new_state(self, piece, direction):
-        """Returns a new state resulting from applying the move."""
         return self.apply_move(piece, direction)
 
-    def compare_board(self, other_board):  # Method to compare this board with another
-        if len(self.board) != len(other_board) or len(self.board[0]) != len(
-                other_board[0]):  # Check if dimensions match
-            return False  # Return False if dimensions don't match
-        return all(self.board[i][j] == other_board[i][j]  # Compare all cells
+    def compare_board(self, other_board):
+        if len(self.board) != len(other_board) or len(self.board[0]) != len(other_board[0]):
+            return False
+        return all(self.board[i][j] == other_board[i][j]
                    for i in range(len(self.board))
                    for j in range(len(self.board[0])))
 
-    def normalize(self):  # Method to normalize the board
-        next_idx = 3  # Start with index 3 (1 and 2 are reserved)
-        for y in range(self.height):  # Iterate over rows
-            for x in range(self.width):  # Iterate over columns
-                if self.board[y][x] == next_idx:  # If cell matches next index
-                    next_idx += 1  # Increment next index
-                elif self.board[y][x] > next_idx:  # If cell is higher than next index
-                    # Swap indices
-                    old_idx = self.board[y][x]  # Store old index
-                    for i in range(self.height):  # Iterate over rows
-                        for j in range(self.width):  # Iterate over columns
-                            if self.board[i][j] == next_idx:  # If cell matches next index
-                                self.board[i][j] = old_idx  # Set to old index
-                            elif self.board[i][j] == old_idx:  # If cell matches old index
-                                self.board[i][j] = next_idx  # Set to next index
-                    next_idx += 1  # Increment next index
+    def normalize(self):
+        next_idx = 3
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.board[y][x] == next_idx:
+                    next_idx += 1
+                elif self.board[y][x] > next_idx:
+                    old_idx = self.board[y][x]
+                    for i in range(self.height):
+                        for j in range(self.width):
+                            if self.board[i][j] == next_idx:
+                                self.board[i][j] = old_idx
+                            elif self.board[i][j] == old_idx:
+                                self.board[i][j] = next_idx
+                    next_idx += 1
 
-    def random_walk(self, N):  # Method to perform a random walk
-        history = []  # Initialize empty list for move history
-        for _ in range(N):  # Repeat N times
-            moves = self.available_moves()  # Get available moves
-            if not moves or self.is_done():  # If no moves or puzzle is solved
-                break  # Exit loop
-            piece, direction = random.choice(moves)  # Choose a random move
-            self.apply_move(piece, direction)  # Apply the move
-            self.normalize()  # Normalize the board
-            history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
-        return history  # Return move history
+    def random_walk(self, N):
+        history = []
+        for _ in range(N):
+            moves = self.available_moves()
+            if not moves or self.is_done():
+                break
+            piece, direction = random.choice(moves)
+            self.apply_move(piece, direction)
+            self.normalize()
+            history.append(((piece, direction), self.clone_state()))
+        return history
 
     def bfs(self):
         start_time = time.time()
@@ -154,32 +143,26 @@ class Sbp:
             if temp_puzzle.is_done():
                 nodes_explored += 1
                 end_time = time.time()
-                # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
                 print()
 
                 temp_puzzle.print_board()
                 print()
-                # Print statistics
                 print(nodes_explored)
                 print(f"{end_time - start_time:.2f}")
                 print(len(moves_list))
                 return True
 
-            # Try each possible move
             for piece, direction in temp_puzzle.available_moves():
-                # Create new puzzle state
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
                 new_puzzle.board = [row[:] for row in current_state]
 
-                # Apply the move
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                # Check if we've seen this state before
                 is_new_state = True
                 for visited_state in visited:
                     if new_puzzle.compare_board(visited_state):
@@ -222,7 +205,7 @@ class Sbp:
 
             # Generate available moves in a consistent order
             available = []
-            pieces = sorted(set(val for row in temp_puzzle.board for val in row if val >= 2))
+            pieces = set(val for row in temp_puzzle.board for val in row if val >= 2)
             directions = ["left", "right", "up", "down"]
 
             for piece in pieces:
@@ -244,6 +227,11 @@ class Sbp:
                     visited.add(board_tuple)
                     new_moves = moves_list + [(piece, direction)]
                     stack.append((new_moves, new_puzzle.board))
+
+                # Debugging output
+                print(f"Exploring move: ({piece}, {direction})")
+                print(f"Current stack size: {len(stack)}")
+                print(f"Nodes explored: {nodes_explored}")
 
         return False
 
