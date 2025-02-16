@@ -215,8 +215,8 @@ class Sbp:
                 print(f"{end_time - start_time:.2f}")
                 print(len(moves_list))
                 return True
-
-            for piece, direction in temp_puzzle.available_moves():
+            for piece, direction in sorted(temp_puzzle.available_moves(), key=lambda x: (x != (2, 'left'), x)):
+            # for piece, direction in temp_puzzle.available_moves():
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
