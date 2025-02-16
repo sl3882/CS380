@@ -94,6 +94,14 @@ class Sbp:
         # Set new positions
         for x, y in cells:
             self.board[y + dy][x + dx] = piece
+    def apply_move_and_return_new_state(self, piece, direction):
+        """Returns a new state resulting from applying the move."""
+        new_state = Sbp()
+        new_state.width = self.width
+        new_state.height = self.height
+        new_state.board = self.clone_state()
+        new_state.apply_move(piece, direction)
+        return new_state
 
     def compare_board(self, other_board):  # Method to compare this board with another
         if len(self.board) != len(other_board) or len(self.board[0]) != len(
@@ -232,7 +240,7 @@ class Sbp:
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
                 new_puzzle.board = temp_puzzle.clone_state()
-                new_puzzle.apply_move(piece, direction)
+                new_puzzle= new_puzzle.apply_move_and_return_new_state(piece, direction)
                 new_puzzle.normalize()
 
                 board_tuple = tuple(tuple(row) for row in new_puzzle.board)
