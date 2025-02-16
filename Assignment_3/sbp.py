@@ -48,7 +48,6 @@ class Sbp:
                             ni, nj = i + dx, j + dy
                             if 0 <= ni < self.height and 0 <= nj < self.width and self.board[ni][nj] == 0:
                                 moves.append((piece, direction))
-                                break
         return moves
 def main():
     if len(sys.argv) < 3:
