@@ -59,13 +59,13 @@ class Sbp:
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
 
-            if not (0 <= new_x < self.width and 0 <= new_y < self.height):
-                return False
+            # if not (0 <= new_x < self.width and 0 <= new_y < self.height):
+            #     return False
 
             target_cell = self.board[new_y][new_x]
 
-            # if target_cell == 0:
-            #     continue
+            if target_cell == 0:
+                continue
             if target_cell == 1:
                 return False
 
@@ -94,8 +94,8 @@ class Sbp:
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        # for x, y in cells:
-        #     self.board[y][x] = 0
+        for x, y in cells:
+            self.board[y][x] = 0
 
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
