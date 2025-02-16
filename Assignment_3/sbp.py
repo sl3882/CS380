@@ -56,7 +56,7 @@ class Sbp:
             if target_cell == 0:
                 continue
 
-                # Only the master brick (2) can move into the goal (-1)
+            # Only the master brick (2) can move into the goal (-1)
             if target_cell == -1 and piece != 2:
                 return False  # Other pieces cannot move into the goal
 
@@ -68,7 +68,8 @@ class Sbp:
 
     def available_moves(self):  # Method to get all available moves
         moves = []  # Initialize empty list for moves
-        pieces = set(val for row in self.board for val in row if val >= 2)  # Get set of all pieces
+        # Get pieces in sorted order for consistent move generation
+        pieces = sorted(set(val for row in self.board for val in row if val >= 2))
         directions = ["up", "down", "left", "right"]  # List of possible directions
 
         for piece in pieces:  # Iterate over pieces
