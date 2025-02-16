@@ -138,9 +138,8 @@ class Sbp:
         start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        visited = set()
-        visited.add(self.state_to_tuple(initial_state))
-        nodes_explored = 0
+        visited = [initial_state]
+        nodes_explored = 1
 
         while queue:
             moves_list, current_state = queue.popleft()
@@ -179,17 +178,18 @@ class Sbp:
                 new_puzzle.normalize()
 
                 # Check if we've seen this state before
-                state_tuple = self.state_to_tuple(new_puzzle.board)
-                if state_tuple not in visited:
-                    visited.add(state_tuple)
+                is_new_state = True
+                for visited_state in visited:
+                    if new_puzzle.compare_board(visited_state):
+                        is_new_state = False
+                        break
+
+                if is_new_state:
+                    visited.append(new_puzzle.board)
                     new_moves = moves_list + [(piece, direction)]
                     queue.append((new_moves, new_puzzle.board))
 
         return False
-
-    def state_to_tuple(self, state):
-        """Converts the board state to a tuple for hashing."""
-        return tuple(tuple(row) for row in state)
 
 
 
