@@ -194,10 +194,9 @@ class Sbp:
 
     def dfs(self):
         start_time = time.time()
-        initial_state = tuple(map(tuple, self.clone_state()))
+        initial_state = self.clone_state()
         stack = [([], initial_state)]
-        visited = set()
-        visited.add(initial_state)
+        visited = {tuple(tuple(row) for row in initial_state)}  # Use set for efficient lookups
         nodes_explored = 1
 
         while stack:
@@ -207,7 +206,7 @@ class Sbp:
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
-            temp_puzzle.board = [list(row) for row in current_state]
+            temp_puzzle.board = current_state
 
             if temp_puzzle.is_done():
                 end_time = time.time()
@@ -221,9 +220,7 @@ class Sbp:
                 print(len(moves_list))
                 return True
 
-            moves = self.get_ordered_moves(temp_puzzle)
-
-            for piece, direction in moves:
+            for piece, direction in temp_puzzle.available_moves():
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
@@ -231,29 +228,14 @@ class Sbp:
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                new_state = tuple(map(tuple, new_puzzle.board))
-                if new_state not in visited:
-                    visited.add(new_state)
+                board_tuple = tuple(tuple(row) for row in new_puzzle.board)  # Convert to immutable type
+
+                if board_tuple not in visited:
+                    visited.add(board_tuple)  # Store as a tuple in the set
                     new_moves = moves_list + [(piece, direction)]
-                    stack.append((new_moves, new_state))
+                    stack.append((new_moves, new_puzzle.board))
 
         return False
-
-    def get_ordered_moves(self, puzzle):
-        moves = []
-        pieces = sorted(set(val for row in puzzle.board for val in row if val >= 2))
-        directions = ["up", "down", "left", "right"]
-
-        for piece in pieces:
-            for direction in directions:
-                if puzzle.can_move(piece, direction):
-                    moves.append((piece, direction))
-
-        return sorted(moves, key=lambda x: (x[0], directions.index(x[1])))
-
-
-
-
 
 
 
