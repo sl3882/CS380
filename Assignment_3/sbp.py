@@ -292,71 +292,61 @@ class Sbp:
 
 
 
-
-def astar(self, filename):
-    """Performs A* search to solve the puzzle."""
-    start_time = time.time()
-    self.load_board(filename)
-    initial_state = self.clone_state()
-    nodes_explored = 0
-
-    def heuristic(state):
+    def heuristic(self):
         """Heuristic function: Manhattan distance between the master brick and the goal."""
-        master_cells = state.get_piece_cells(2)
-        goal_x, goal_y = [(x, y) for y in range(state.height) for x in range(state.width) if state.board[y][x] == -1][0]
+        master_cells = self.get_piece_cells(2)
+        goal_x, goal_y = [(x, y) for y in range(self.height) for x in range(self.width) if self.board[y][x] == -1][0]
         min_distance = float('inf')
         for x, y in master_cells:
             distance = abs(x - goal_x) + abs(y - goal_y)
             if distance < min_distance:
                 min_distance = distance
         return min_distance
+    def astar(self, filename):
+        """Performs A* search to solve the puzzle."""
+        start_time = time.time()
+        self.load_board(filename)
+        initial_state = self.clone_state()
+        nodes_explored = 0
 
-    open_set = []
-    heapq.heappush(open_set, (heuristic(self), 0, self, []))
-    visited = {self.board_to_tuple()}
+        open_set = []
+        heapq.heappush(open_set, (self.heuristic(), 0, self, []))
+        visited = {self.board_to_tuple()}
 
-    while open_set:
-        _, cost, current_state, moves = heapq.heappop(open_set)
-        nodes_explored += 1
+        while open_set:
+            _, cost, current_state, moves = heapq.heappop(open_set)
+            nodes_explored += 1
 
-        if current_state.is_done():
-            end_time = time.time()
-            elapsed_time = end_time - start_time
+            if current_state.is_done():
+                end_time = time.time()
+                elapsed_time = end_time - start_time
 
-            for piece, direction in moves:
-                print(f"({piece},{direction})")
-            print()
+                for piece, direction in moves:
+                    print(f"({piece},{direction})")
+                print()
 
-            current_state.print_board()
-            print()
+                current_state.print_board()
+                print()
 
-            print(nodes_explored)
-            print(f"{elapsed_time:.2f}")
-            print(len(moves))
-            return
+                print(nodes_explored)
+                print(f"{elapsed_time:.2f}")
+                print(len(moves))
+                return
 
-        for piece, direction in current_state.available_moves():
-            new_state = current_state.clone_state()
-            new_state.apply_move(piece, direction)
-            new_state.normalize()
-            new_board_tuple = new_state.board_to_tuple()
+            for piece, direction in current_state.available_moves():
+                new_state = current_state.clone_state()
+                new_state.apply_move(piece, direction)
+                new_state.normalize()
+                new_board_tuple = new_state.board_to_tuple()
 
-            if new_board_tuple not in visited:
-                visited.add(new_board_tuple)
-                new_cost = cost + 1
-                priority = new_cost + heuristic(new_state)
-                heapq.heappush(open_set, (priority, new_cost, new_state, moves + [(piece, direction)]))
+                if new_board_tuple not in visited:
+                    visited.add(new_board_tuple)
+                    new_cost = cost + 1
+                    priority = new_cost + new_state.heuristic()
+                    heapq.heappush(open_set, (priority, new_cost, new_state, moves + [(piece, direction)]))
 
-    print("No solution found")
-    return
-
-
-
-
-
-
-
-
+        print("No solution found")
+        return
 
 
 
