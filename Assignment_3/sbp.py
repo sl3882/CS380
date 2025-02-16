@@ -15,10 +15,12 @@ class SlidingBrickPuzzle:
                 self.height = int(dimensions[1])
                 self.board = []
                 for line in lines[1:]:
-                    row = list(map(int, line.strip().split(',')))
-                    self.board.append(row)
+                    if line.strip():  # Check if the line is not empty
+                        row = list(map(int, line.strip().split(',')))
+                        self.board.append(row)
         except Exception as e:
             print(f"Error loading state from file: {e}")
+
 
     def display_state(self):
         print(f"{self.width},{self.height},")
