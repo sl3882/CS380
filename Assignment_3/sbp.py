@@ -253,9 +253,15 @@ class Sbp:
                 if state.is_done():
                     end_time = time.time()
                     elapsed_time = end_time - start_time
-                    for move in moves:
-                        print(move)
+                    for piece, direction in moves:
+                        print(f"({piece},{direction})")
+                    print()
+
+                    # Print the final state
                     state.print_board()
+                    print()
+
+                    # Print statistics
                     print(nodes_explored)
                     print(f"{elapsed_time:.2f}")
                     print(len(moves))
