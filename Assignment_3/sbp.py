@@ -288,65 +288,94 @@ class Sbp:
                 return
         print("No solution found within reasonable depth")
 
+def astar(self, filename):
+    """Performs an A* search to solve the puzzle."""
+    start_time = time.time()
+    self.load_board(filename)
+    initial_state = self.clone_state()
 
+    # Find the master brick (piece 2) coordinates
+    master_cells = self.get_piece_cells(2)
 
+    # Find goal position (empty space surrounded by walls/1s)
+    goal_position = None
+    for y in range(self.height):
+        for x in range(self.width):
+            if self.board[y][x] == -1:
+                # Check if this is surrounded by walls, making it the goal position
+                neighbors = [(x + dx, y + dy) for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]]
+                if all(0 <= nx < self.width and 0 <= ny < self.height and
+                       (self.board[ny][nx] == 1 or self.board[ny][nx] == -1)
+                       for nx, ny in neighbors):
+                    goal_position = (x, y)
+                    break
+        if goal_position:
+            break
 
+    # If we can't find a clear goal position, use the first -1 cell
+    if not goal_position:
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.board[y][x] == -1:
+                    goal_position = (x, y)
+                    break
+            if goal_position:
+                break
 
-    def heuristic(self):
-        """Heuristic function: Manhattan distance between the master brick and the goal."""
-        master_cells = self.get_piece_cells(2)
-        goal_x, goal_y = [(x, y) for y in range(self.height) for x in range(self.width) if self.board[y][x] == -1][0]
-        min_distance = float('inf')
-        for x, y in master_cells:
-            distance = abs(x - goal_x) + abs(y - goal_y)
-            if distance < min_distance:
-                min_distance = distance
-        return min_distance
-    def astar(self, filename):
-        """Performs A* search to solve the puzzle."""
-        start_time = time.time()
-        self.load_board(filename)
-        initial_state = self.clone_state()
-        nodes_explored = 0
+    # Manhattan distance heuristic: minimum moves to get master brick to goal
+    def heuristic(state):
+        state_master_cells = state.get_piece_cells(2)
+        # Get centroid of master brick
+        center_x = sum(x for x, _ in state_master_cells) / len(state_master_cells)
+        center_y = sum(y for _, y in state_master_cells) / len(state_master_cells)
+        return abs(center_x - goal_position[0]) + abs(center_y - goal_position[1])
 
-        open_set = []
-        heapq.heappush(open_set, (self.heuristic(), 0, self, []))
-        visited = {self.board_to_tuple()}
+    # Priority queue for A* search
+    open_set = [(heuristic(self), 0, self, [])]  # (f, g, state, moves)
+    visited = {self.board_to_tuple(): 0}  # Dict mapping state to cost g
+    nodes_explored = 0
 
-        while open_set:
-            _, cost, current_state, moves = heapq.heappop(open_set)
-            nodes_explored += 1
+    while open_set:
+        f, g, current_state, moves = heapq.heappop(open_set)
+        nodes_explored += 1
 
-            if current_state.is_done():
-                end_time = time.time()
-                elapsed_time = end_time - start_time
+        if current_state.is_done():
+            end_time = time.time()
+            elapsed_time = end_time - start_time
 
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
+            # Print the moves
+            for piece, direction in moves:
+                print(f"({piece},{direction})")
+            print()
 
-                current_state.print_board()
-                print()
+            # Print the final state
+            current_state.print_board()
+            print()
 
-                print(nodes_explored)
-                print(f"{elapsed_time:.2f}")
-                print(len(moves))
-                return
+            # Print statistics
+            print(nodes_explored)
+            print(f"{elapsed_time:.2f}")
+            print(len(moves))
+            return
 
-            for piece, direction in current_state.available_moves():
-                new_state = current_state.clone_state()
-                new_state.apply_move(piece, direction)
-                new_state.normalize()
-                new_board_tuple = new_state.board_to_tuple()
+        for piece, direction in current_state.available_moves():
+            new_state = current_state.clone_state()
+            new_state.apply_move(piece, direction)
+            new_state.normalize()
+            new_board_tuple = new_state.board_to_tuple()
 
-                if new_board_tuple not in visited:
-                    visited.add(new_board_tuple)
-                    new_cost = cost + 1
-                    priority = new_cost + new_state.heuristic()
-                    heapq.heappush(open_set, (priority, new_cost, new_state, moves + [(piece, direction)]))
+            # Cost for this move
+            new_g = g + 1
 
-        print("No solution found")
-        return
+            # If this state hasn't been visited or we found a better path
+            if new_board_tuple not in visited or new_g < visited[new_board_tuple]:
+                visited[new_board_tuple] = new_g
+                new_f = new_g + heuristic(new_state)
+                heapq.heappush(open_set, (new_f, new_g, new_state, moves + [(piece, direction)]))
+
+    print("No solution found")
+    return
+
 
 
 
