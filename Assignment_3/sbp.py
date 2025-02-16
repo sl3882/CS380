@@ -59,17 +59,17 @@ class Sbp:
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
 
-            # Check if the new position is within the board boundaries
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):
                 return False
 
             target_cell = self.board[new_y][new_x]
 
-            # Check if the target cell is empty or the exit cell (for piece 2)
-            if target_cell == 0 or (target_cell == -1 and piece == 2):
+            if target_cell == 0:
                 continue
 
-            # Check if the target cell is occupied by another piece
+            if target_cell == -1 and piece != 2:
+                return False
+
             if target_cell not in [0, -1] and (new_x, new_y) not in cells:
                 return False
 
