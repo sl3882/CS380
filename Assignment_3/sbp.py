@@ -96,13 +96,13 @@ class Sbp:
         return new_state
 
     def compare_states(self, other):
-        def compare_board(self, other_board):  # Method to compare this board with another
-            if len(self.board) != len(other_board) or len(self.board[0]) != len(
-                    other_board[0]):  # Check if dimensions match
-                return False  # Return False if dimensions don't match
-            return all(self.board[i][j] == other_board[i][j]  # Compare all cells
-                       for i in range(len(self.board))
-                       for j in range(len(self.board[0])))
+        """Compares the current state with another state."""
+        if self.width != other.width or self.height != other.height:
+            return False
+        for row1, row2 in zip(self.board, other.board):
+            if row1 != row2:
+                return False
+        return True
 
     def normalize(self):  # Method to normalize the board
         next_idx = 3  # Start with index 3 (1 and 2 are reserved)
@@ -138,8 +138,9 @@ class Sbp:
         start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        visited = [initial_state]
-        nodes_explored = 1
+        visited = set()
+        visited.add(self.state_to_tuple(initial_state))
+        nodes_explored = 0
 
         while queue:
             moves_list, current_state = queue.popleft()
@@ -178,20 +179,17 @@ class Sbp:
                 new_puzzle.normalize()
 
                 # Check if we've seen this state before
-                is_new_state = True
-                for visited_state in visited:
-                    if new_puzzle.compare_states(visited_state):
-                        is_new_state = False
-                        break
-
-
-                if is_new_state:
-                    visited.append(new_puzzle.board)
+                state_tuple = self.state_to_tuple(new_puzzle.board)
+                if state_tuple not in visited:
+                    visited.add(state_tuple)
                     new_moves = moves_list + [(piece, direction)]
                     queue.append((new_moves, new_puzzle.board))
 
         return False
 
+    def state_to_tuple(self, state):
+        """Converts the board state to a tuple for hashing."""
+        return tuple(tuple(row) for row in state)
 
 
 
