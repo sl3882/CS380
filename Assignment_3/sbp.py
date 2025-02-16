@@ -32,35 +32,42 @@ class Sbp:
         print(f"{self.width},{self.height},")
         for row in self.board:
             print(",".join(map(str, row)) + ",")
-    def available_moves(self):
-        moves = []
-        directions = {'up': (-1, 0), 'down': (1, 0), 'left': (0, -1), 'right': (0, 1)}
 
+    def get_piece_positions(self):
+        """Returns a dictionary mapping piece IDs to their positions on the board."""
+        pieces = {}
         for r in range(self.height):
             for c in range(self.width):
                 piece = self.board[r][c]
-                if piece > 1:
-                    for direction_name, (dr, dc) in directions.items():
-                        # Check if the move is valid for the ENTIRE piece
-                        valid_move = True
-                        piece_coords = []  # Store coordinates of the entire piece
+                if piece > 0:  # Ignore empty cells and walls
+                    if piece not in pieces:
+                        pieces[piece] = []
+                    pieces[piece].append((r, c))
+        return pieces
 
-                        # Find all cells belonging to the current piece
-                        for i in range(self.height):
-                            for j in range(self.width):
-                                if self.board[i][j] == piece:
-                                    piece_coords.append((i, j))
+    def available_moves(self):
+        """Returns a list of all available moves as (piece, direction)."""
+        moves = []
+        piece_positions = self.get_piece_positions()
 
-                        for pr, pc in piece_coords:
-                            nr, nc = pr + dr, pc + dc  # New row and column after move
-                            if not (0 <= nr < self.height and 0 <= nc < self.width and self.board[nr][nc] == 0):
-                                valid_move = False
-                                break  # No need to check other cells of the piece
+        for piece, positions in piece_positions.items():
+            min_r = min(r for r, _ in positions)
+            max_r = max(r for r, _ in positions)
+            min_c = min(c for _, c in positions)
+            max_c = max(c for _, c in positions)
 
-                        if valid_move:
-                            moves.append((piece, direction_name))
+            # Check movement in all four directions
+            if min_r > 0 and self.board[min_r - 1][min_c] == 0:  # Up
+                moves.append((piece, "up"))
+            if max_r < self.height - 1 and self.board[max_r + 1][min_c] == 0:  # Down
+                moves.append((piece, "down"))
+            if min_c > 0 and self.board[min_r][min_c - 1] == 0:  # Left
+                moves.append((piece, "left"))
+            if max_c < self.width - 1 and self.board[min_r][max_c + 1] == 0:  # Right
+                moves.append((piece, "right"))
 
         return moves
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: python3 sbp.py <command> <filename> [args]")
