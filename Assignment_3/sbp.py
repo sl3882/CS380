@@ -219,22 +219,9 @@ class Sbp:
             nodes_explored += 1
 
             if current_state.is_done():
-                end_time = time.time()
-                elapsed_time = end_time - start_time
+
                 nodes_explored += 1
-                # Print the moves in the required format
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
-
-                # Print the final state
-                current_state.print_board()
-                print()
-
-                # Print statistics
-                print(nodes_explored)
-                print(f"{elapsed_time:.2f}")
-                print(len(moves))
+                self.print_solution(moves, current_state, nodes_explored, start_time)
                 return
 
             # Explore available moves in reverse order (to prioritize certain moves)
