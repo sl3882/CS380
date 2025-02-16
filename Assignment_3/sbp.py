@@ -1,5 +1,5 @@
 import sys
-from random import random
+from random import choice
 
 class Sbp:
     def __init__(self):
@@ -93,6 +93,7 @@ class Sbp:
         new_state.board = self.clone_state()
         new_state.apply_move(piece, direction)
         return new_state
+
     def compare_states(self, other):
         """Compares the current state with another state."""
         if self.width != other.width or self.height != other.height:
@@ -125,7 +126,7 @@ class Sbp:
             moves = self.available_moves()  # Get available moves
             if not moves or self.is_done():  # If no moves or puzzle is solved
                 break  # Exit loop
-            piece, direction = random.choice(moves)  # Choose a random move
+            piece, direction = choice(moves)  # Choose a random move
             self.apply_move(piece, direction)  # Apply the move
             self.normalize()  # Normalize the board
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
@@ -170,14 +171,10 @@ def main():
         other_puzzle = Sbp()
         other_puzzle.load_board(filename2)
         print(puzzle.compare_states(other_puzzle))
-
     elif command == "norm":
         puzzle.load_board(filename)
         puzzle.normalize()
         puzzle.print_board()
-
-
-
     elif command == "random":  # If command is "random"
         if len(sys.argv) != 4:  # Check if correct number of arguments
             print("Usage: python3 sbp.py random <filename> <N>")  # Print usage instructions
@@ -189,15 +186,6 @@ def main():
             print(f"({piece}, {direction})")  # Print each move
             puzzle.board = state  # Update board state
             puzzle.print_board()  # Print updated board
-
-
-
-
-
-
-
-
-
     else:
         print(f"Unknown command: {command}")
 
