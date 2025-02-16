@@ -92,6 +92,15 @@ class Sbp:
         new_state.board = self.clone_state()
         new_state.apply_move(piece, direction)
         return new_state
+    def compare_states(self, other):
+        """Compares the current state with another state."""
+        if self.width != other.width or self.height != other.height:
+            return False
+        for row1, row2 in zip(self.board, other.board):
+            if row1 != row2:
+                return False
+        return True
+
 
 def main():
     if len(sys.argv) < 3:
@@ -123,6 +132,23 @@ def main():
         puzzle.load_board(filename)
         new_state = puzzle.apply_move_and_return_new_state(piece, direction)
         new_state.print_board()
+    elif command == "compare":
+        if len(sys.argv) < 4:
+            print("Usage: python3 sbp.py compare <filename1> <filename2>")
+            sys.exit(1)
+        filename2 = sys.argv[3]
+        puzzle.load_board(filename)
+        other_puzzle = Sbp()
+        other_puzzle.load_board(filename2)
+        print(puzzle.compare_states(other_puzzle))
+
+
+
+
+
+
+
+
     else:
         print(f"Unknown command: {command}")
 
