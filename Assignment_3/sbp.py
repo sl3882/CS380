@@ -192,7 +192,7 @@ class Sbp:
         start_time = time.time()
         initial_state = self.clone_state()
         stack = [([], initial_state)]
-        visited = {tuple(tuple(row) for row in initial_state)}
+        visited = [initial_state]
         nodes_explored = 1
 
         while stack:
@@ -216,8 +216,18 @@ class Sbp:
                 print(len(moves_list))
                 return True
 
-            # Here, we try to make the move order more logical and consistent
-            for piece, direction in temp_puzzle.available_moves():
+            # Modified available_moves to ensure consistent ordering
+            available = []
+            pieces = list(set(val for row in temp_puzzle.board for val in row if val >= 2))
+            pieces.sort(reverse=True)  # Sort in descending order to prioritize larger pieces
+            directions = ["left", "right", "up", "down"]
+
+            for piece in pieces:
+                for direction in directions:
+                    if temp_puzzle.can_move(piece, direction):
+                        available.append((piece, direction))
+
+            for piece, direction in available:
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
@@ -225,10 +235,8 @@ class Sbp:
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                board_tuple = tuple(tuple(row) for row in new_puzzle.board)
-
-                if board_tuple not in visited:
-                    visited.add(board_tuple)
+                if not any(new_puzzle.compare_board(state) for state in visited):
+                    visited.append(new_puzzle.board)
                     new_moves = moves_list + [(piece, direction)]
                     stack.append((new_moves, new_puzzle.board))
 
