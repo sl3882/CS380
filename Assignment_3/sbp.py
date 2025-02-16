@@ -234,15 +234,14 @@ def main():
         puzzle.load_board(filename)
         new_state = puzzle.apply_move_and_return_new_state(piece, direction)
         new_state.print_board()
-    elif command == "compare":
-        if len(sys.argv) < 4:
-            print("Usage: python3 sbp.py compare <filename1> <filename2>")
-            sys.exit(1)
-        filename2 = sys.argv[3]
-        puzzle.load_board(filename)
-        other_puzzle = Sbp()
-        other_puzzle.load_board(filename2)
-        print(puzzle.compare_state(other_puzzle))
+    elif command == "compare":  # If command is "compare"
+        if len(sys.argv) != 4:  # Check if correct number of arguments
+            print("Usage: python3 sbp.py compare <filename1> <filename2>")  # Print usage instructions
+            sys.exit(1)  # Exit with error code 1
+        puzzle2 = Sbp()  # Create second Sbp instance
+        puzzle.load_board(filename)  # Load first board
+        puzzle2.load_board(sys.argv[3])  # Load second board
+        print(puzzle.compare_state(puzzle2.board))  # Print comparison result
     elif command == "norm":
         puzzle.load_board(filename)
         puzzle.normalize()
