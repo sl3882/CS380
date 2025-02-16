@@ -73,9 +73,9 @@ class Sbp:
         return moves
 
     def apply_move(self, piece, direction):
-        # """Applies the given move to the board if it is available."""
-        # if (piece, direction) not in self.available_moves():
-        #     return  # Do nothing if the move is not available
+        """Applies the given move to the board if it is available."""
+        if (piece, direction) not in self.available_moves():
+            return  # Do nothing if the move is not available
 
         directions = {'up': (-1, 0), 'down': (1, 0), 'left': (0, -1), 'right': (0, 1)}
         dx, dy = directions[direction]
@@ -134,14 +134,17 @@ class Sbp:
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
 
-
+    def state_to_string(self):
+        """Convert board state to string for efficient comparison"""
+        return ','.join(','.join(str(x) for x in row) for row in self.board)
 
     def bfs(self):
         start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        visited = [initial_state]
-        nodes_explored = 1
+        # Use set of strings instead of list of states
+        visited = {self.state_to_string()}
+        nodes_explored = 0
 
         while queue:
             moves_list, current_state = queue.popleft()
@@ -153,16 +156,15 @@ class Sbp:
             temp_puzzle.board = current_state
 
             if temp_puzzle.is_done():
-                nodes_explored += 1
                 end_time = time.time()
-                # Print the moves
+                # Print moves without empty lines
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
-                print()
 
+                # Print final state
                 temp_puzzle.print_board()
-                print()
-                # Print statistics
+
+                # Print statistics without empty lines
                 print(nodes_explored)
                 print(f"{end_time - start_time:.2f}")
                 print(len(moves_list))
@@ -170,28 +172,25 @@ class Sbp:
 
             # Try each possible move
             for piece, direction in temp_puzzle.available_moves():
-                # Create new puzzle state
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
-                new_puzzle.board = [row[:] for row in current_state]
-
-                # Apply the move
+                new_puzzle.board = temp_puzzle.clone_state()
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                # Check if we've seen this state before
-                is_new_state = True
-                for visited_state in visited:
-                    if new_puzzle.compare_state(visited_state):
-                        is_new_state = False
-                        break
-
-                if is_new_state:
-                    visited.append(new_puzzle.board)
+                # Use string comparison instead of board comparison
+                state_str = new_puzzle.state_to_string()
+                if state_str not in visited:
+                    visited.add(state_str)
                     new_moves = moves_list + [(piece, direction)]
                     queue.append((new_moves, new_puzzle.board))
 
+        # No solution found
+        end_time = time.time()
+        print(nodes_explored)
+        print(f"{end_time - start_time:.2f}")
+        print(0)
         return False
 
 
