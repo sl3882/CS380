@@ -68,7 +68,7 @@ class Sbp:
 
     def available_moves(self):  # Method to get all available moves
         moves = []  # Initialize empty list for moves
-        pieces = sorted(set(val for row in self.board for val in row if val >= 2))  # Get set of all pieces
+        pieces = set(val for row in self.board for val in row if val >= 2)  # Get set of all pieces
         directions = ["up", "down", "left", "right"]  # List of possible directions
 
         for piece in pieces:  # Iterate over pieces
