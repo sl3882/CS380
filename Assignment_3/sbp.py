@@ -160,7 +160,7 @@ class Sbp:
         initial_state = self.clone_state()
         queue = deque([(self, [])])  # Queue of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 0
+        nodes_explored = 1
 
         while queue:
             current_state, moves = queue.popleft()
@@ -168,6 +168,7 @@ class Sbp:
 
             if current_state.is_done():
                 end_time = time.time()
+                nodes_explored += 1
                 elapsed_time = end_time - start_time
 
                 for move in moves:
