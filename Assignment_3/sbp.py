@@ -59,18 +59,18 @@ class Sbp:
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
 
+            # Check if the new position is within bounds
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):
                 return False
 
             target_cell = self.board[new_y][new_x]
 
-            if target_cell == 1 or (target_cell == -1 and piece != 2):
-                return False
-
-            if target_cell == 0:
+            # If the target cell is empty or the goal and the piece is not the master brick, continue
+            if target_cell == 0 or (target_cell == -1 and piece == 2):
                 continue
 
-            if target_cell > 1 and (new_x, new_y) not in cells:  # Optimized
+            # If the target is a wall or another brick (except the master brick on the goal), return False
+            if target_cell == 1 or (target_cell >= 2 and target_cell != piece):
                 return False
 
         return True
