@@ -24,33 +24,35 @@ class SlidingBrickPuzzle:
     def display_state(self):
         print(f"{self.width},{self.height},")
         for row in self.board:
-            print(','.join(map(str, row)) + ',')
+            print(','.join(map(str, row)))
+
     def clone_state(self):
         cloned_puzzle = SlidingBrickPuzzle()
         cloned_puzzle.width = self.width
         cloned_puzzle.height = self.height
         cloned_puzzle.board = copy.deepcopy(self.board)
         return cloned_puzzle
-    def is_done(self):  # Method to check if the puzzle is solved
-        return not any(-1 in row for row in self.board)  # Check if any -1 (empty space) remains
 
-def main():  # Main function
-    if len(sys.argv) < 3:  # Check if enough command-line arguments are provided
-        print("Usage: python3 sbp.py <command> <filename> [args]")  # Print usage instructions
-        sys.exit(1)  # Exit with error code 1
+    def is_solved(self):
+        return not any(-1 in row for row in self.board)
 
-    command = sys.argv[1]  # Get command from command-line arguments
-    filename = sys.argv[2]  # Get filename from command-line arguments
-    puzzle = SlidingBrickPuzzle()  # Create Sbp instance
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: python3 sbp.py <command> <filename> [args]")
+        sys.exit(1)
 
-    if command == "print":  # If command is "print"
-        puzzle.load_state(filename)  # Load board from file
-        puzzle.display_state()  # Print the board
+    command = sys.argv[1]
+    filename = sys.argv[2]
+    puzzle = SlidingBrickPuzzle()
 
-    elif command == "done":  # If command is "done"
-        puzzle.load_state(filename)  # Load board from file
-        print(puzzle.is_done())  # Print whether puzzle is solved
-
+    if command == "print":
+        puzzle.load_state(filename)
+        puzzle.display_state()
+    elif command == "done":
+        puzzle.load_state(filename)
+        print(puzzle.is_solved())
+    else:
+        print("Unknown command or missing filename")
 
 if __name__ == "__main__":
     main()
