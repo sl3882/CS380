@@ -21,11 +21,10 @@ class SlidingBrickPuzzle:
         except Exception as e:
             print(f"Error loading state from file: {e}")
 
-
     def display_state(self):
         print(f"{self.width},{self.height},")
         for row in self.board:
-            print(','.join(map(str, row)) + ',')
+            print(','.join(map(str, row)))
 
 def main(command, filename=None):
     if command == "print" and filename:
@@ -34,8 +33,6 @@ def main(command, filename=None):
         puzzle.display_state()
     else:
         print("Unknown command or missing filename")
-
-
 
 if __name__ == "__main__":
     args = sys.argv[1:]
