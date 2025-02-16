@@ -198,41 +198,44 @@ class Sbp:
         initial_state = self.clone_state()
         stack = [(self, [])]  # Stack of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 1
+        nodes_explored = 0
 
         while stack:
-            current_state, moves = stack.pop()  # Pop from the stack (LIFO)
+            current_state, moves = stack.pop()
             nodes_explored += 1
 
             if current_state.is_done():
                 end_time = time.time()
                 elapsed_time = end_time - start_time
-                nodes_explored += 1
-                # Print the moves in the required format
+
                 for piece, direction in moves:
                     print(f"({piece},{direction})")
                 print()
 
-                # Print the final state
                 current_state.print_board()
                 print()
 
-                # Print statistics
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
                 return
 
-            # Explore available moves in reverse order (to prioritize certain moves)
-            for piece, direction in reversed(current_state.available_moves()):
+            available_moves = current_state.available_moves()
+
+            # Prioritize (2, left) if available
+            if (2, "left") in available_moves:
+                available_moves.remove((2, "left"))
+                available_moves.insert(0, (2, "left"))
+
+            for piece, direction in available_moves:  # Now uses prioritized list
                 new_state = current_state.clone_state()
-                new_state.apply_move(piece, direction)
+                new_state.apply_move(piece, direction)  # apply_move now has the check
                 new_state.normalize()
                 new_board_tuple = new_state.board_to_tuple()
 
                 if new_board_tuple not in visited:
                     visited.add(new_board_tuple)
-                    stack.append((new_state, moves + [(piece, direction)]))  # Push to the stack
+                    stack.append((new_state, moves + [(piece, direction)]))
 
         print("No solution found")
         return
