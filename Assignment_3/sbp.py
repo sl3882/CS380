@@ -59,29 +59,28 @@ class Sbp:
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
 
-            # Check if the new position is within the board boundaries
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):
                 return False
 
             target_cell = self.board[new_y][new_x]
 
-            # Allow movement into empty cells (0) or goal cells (-1) for the master brick (2)
             if target_cell == 0:
                 continue
-            if target_cell == -1 and piece == 2:
-                continue
-
-            # Disallow movement into walls (1) or other pieces
-            if target_cell == 1 or (target_cell not in [0, -1] and (new_x, new_y) not in cells):
+            if target_cell == 1:
                 return False
 
+            if target_cell == -1 and piece != 2:
+                return False
+
+
+            if target_cell not in [0-1] and (new_x, new_y) not in cells:
+                return False
         return True
 
     def available_moves(self):
         """Gets all available moves."""
         moves = []
-        pieces = sorted(
-            set(val for row in self.board for val in row if val >= 2))  # Sort for consistent move generation
+        pieces = sorted(set(val for row in self.board for val in row if val >= 2))
         directions = ["up", "down", "left", "right"]
 
         for piece in pieces:
@@ -92,21 +91,16 @@ class Sbp:
 
     def apply_move(self, piece, direction):
         """Applies a move to the board."""
-        if not self.can_move(piece, direction):  # Check BEFORE applying
-            return  # Or raise an exception
-
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        old_positions = {(x, y): self.board[y][x] for x, y in cells}
-
         for x, y in cells:
-            if old_positions[(x, y)] == -1:
-                continue
             self.board[y][x] = 0
 
         for x, y in cells:
-            self.board[y + dy][x + dx] = piece
+            new_x, new_y = x + dx, y + dy
+            self.board[new_y][new_x] = piece
+
 
         self.normalize()
 
@@ -201,9 +195,10 @@ class Sbp:
         """Performs a depth-first search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
+        initial_state = self.clone_state()
         stack = [(self, [])]  # Stack of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 0
+        nodes_explored = 1
 
         while stack:
             current_state, moves = stack.pop()  # Pop from the stack (LIFO)
@@ -212,7 +207,7 @@ class Sbp:
             if current_state.is_done():
                 end_time = time.time()
                 elapsed_time = end_time - start_time
-
+                nodes_explored += 1
                 # Print the moves in the required format
                 for piece, direction in moves:
                     print(f"({piece},{direction})")
