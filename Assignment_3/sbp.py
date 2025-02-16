@@ -318,6 +318,7 @@ class Sbp:
         priority_queue = [(initial_heuristic, self, [])]
         visited = {self.board_to_tuple()}
         nodes_explored = 0
+        tie_breaker = 0 # Initialize Tie Breaker
 
         while priority_queue:
             f_score, current_state, moves = heapq.heappop(priority_queue)
@@ -347,10 +348,12 @@ class Sbp:
                     heuristic = new_state.manhattan_distance_to_goal()
                     g_score = len(moves) + 1  # Cost to reach new state
                     f_score = g_score + heuristic
-                    heapq.heappush(priority_queue, (f_score, new_state, moves + [(piece, direction)]))
+                    tie_breaker += 1
+                    heapq.heappush(priority_queue, (f_score, tie_breaker, new_state, moves + [(piece, direction)]))
 
         print("No solution found")
         return
+
 
 def main():
     if len(sys.argv) < 3:
