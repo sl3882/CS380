@@ -401,10 +401,10 @@ def main():
             puzzle.print_board()
     elif command == "bfs":
         puzzle.bfs(filename)
-        puzzle.normalize()
+
     elif command == "dfs":
         puzzle.dfs(filename)
-
+        puzzle.normalize()
 
 
     elif command == "ids":
