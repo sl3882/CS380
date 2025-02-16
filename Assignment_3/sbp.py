@@ -249,21 +249,9 @@ class Sbp:
 
                 nodes_explored += 1
                 if state.is_done():
-                    end_time = time.time()
-                    elapsed_time = end_time - start_time
-                    for piece, direction in moves:
-                        print(f"({piece},{direction})")
-                    print()
-
-                    # Print the final state
-                    state.print_board()
-                    print()
-
-                    # Print statistics
-                    print(nodes_explored)
-                    print(f"{elapsed_time:.2f}")
-                    print(len(moves))
-                    return True
+                    nodes_explored += 1
+                    self.print_solution(moves, state, nodes_explored, start_time)
+                    return
 
                 if depth >= depth_limit:
                     return False
@@ -355,22 +343,8 @@ class Sbp:
 
             # Check if puzzle is solved
             if current_state.is_done():
-                end_time = time.time()
-                elapsed_time = end_time - start_time
 
-                # Print each move in the format (piece,direction)
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
-
-                # Print the final state
-                current_state.print_board()
-                print()
-
-                # Print statistics
-                print(nodes_explored)
-                print(f"{elapsed_time:.2f}")
-                print(len(moves))
+                self.print_solution(moves, current_state, nodes_explored, start_time)
                 return
 
             # Get current g score
