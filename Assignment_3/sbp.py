@@ -95,14 +95,13 @@ class Sbp:
         new_state.apply_move(piece, direction)
         return new_state
 
-    def compare_states(self, other):
-        """Compares the current state with another state."""
-        if self.width != other.width or self.height != other.height:
-            return False
-        for row1, row2 in zip(self.board, other.board):
-            if row1 != row2:
-                return False
-        return True
+    def compare_state(self, other_board):  # Method to compare this board with another
+        if len(self.board) != len(other_board) or len(self.board[0]) != len(
+                other_board[0]):  # Check if dimensions match
+            return False  # Return False if dimensions don't match
+        return all(self.board[i][j] == other_board[i][j]  # Compare all cells
+                   for i in range(len(self.board))
+                   for j in range(len(self.board[0])))
 
     def normalize(self):  # Method to normalize the board
         next_idx = 3  # Start with index 3 (1 and 2 are reserved)
@@ -138,12 +137,13 @@ class Sbp:
 
     def bfs(self):
         start_time = time.time()
-        queue = deque([(self.clone_state(), [])])
-        visited = {self.state_to_string()}
-        nodes_explored = 0
+        initial_state = self.clone_state()
+        queue = deque([([], initial_state)])
+        visited = [initial_state]
+        nodes_explored = 1
 
         while queue:
-            current_state, moves = queue.popleft()
+            moves_list, current_state = queue.popleft()
             nodes_explored += 1
 
             temp_puzzle = Sbp()
@@ -152,21 +152,46 @@ class Sbp:
             temp_puzzle.board = current_state
 
             if temp_puzzle.is_done():
+                nodes_explored += 1
                 end_time = time.time()
-                return moves, current_state, nodes_explored, round(end_time - start_time, 2)
+                # Print the moves
+                for piece, direction in moves_list:
+                    print(f"({piece},{direction})")
+                print()
 
+                temp_puzzle.print_board()
+                print()
+                # Print statistics
+                print(nodes_explored)
+                print(f"{end_time - start_time:.2f}")
+                print(len(moves_list))
+                return True
+
+            # Try each possible move
             for piece, direction in temp_puzzle.available_moves():
-                new_state = temp_puzzle.apply_move_and_return_new_state(piece, direction)
-                new_state.normalize()
-                state_str = new_state.state_to_string()
+                # Create new puzzle state
+                new_puzzle = Sbp()
+                new_puzzle.width = self.width
+                new_puzzle.height = self.height
+                new_puzzle.board = [row[:] for row in current_state]
 
-                if state_str not in visited:
-                    visited.add(state_str)
-                    new_moves = moves + [(piece, direction)]
-                    queue.append((new_state.board, new_moves))
+                # Apply the move
+                new_puzzle.apply_move(piece, direction)
+                new_puzzle.normalize()
 
-        end_time = time.time()
-        return None, None, nodes_explored, round(end_time - start_time, 2)
+                # Check if we've seen this state before
+                is_new_state = True
+                for visited_state in visited:
+                    if new_puzzle.compare_state(visited_state):
+                        is_new_state = False
+                        break
+
+                if is_new_state:
+                    visited.append(new_puzzle.board)
+                    new_moves = moves_list + [(piece, direction)]
+                    queue.append((new_moves, new_puzzle.board))
+
+        return False
 
 
 
@@ -217,7 +242,7 @@ def main():
         puzzle.load_board(filename)
         other_puzzle = Sbp()
         other_puzzle.load_board(filename2)
-        print(puzzle.compare_states(other_puzzle))
+        print(puzzle.compare_state(other_puzzle))
     elif command == "norm":
         puzzle.load_board(filename)
         puzzle.normalize()
@@ -236,33 +261,8 @@ def main():
 
     elif command == "bfs":
         puzzle.load_board(filename)
-        moves, final_state, nodes_explored, time_taken = puzzle.bfs()
-
-        if moves is None:
-            print("No solution found")
-            print(f"{nodes_explored}")
-            print(f"{time_taken:.2f}")
-            print("0")
-        else:
-            # Print moves
-            for piece, direction in moves:
-                print(f"({piece},{direction})")
-
-            # Print final state
-            temp_puzzle = Sbp()
-            temp_puzzle.width = puzzle.width
-            temp_puzzle.height = puzzle.height
-            temp_puzzle.board = final_state
-            temp_puzzle.print_board()
-
-            # Print statistics
-            print(nodes_explored)
-            print(f"{time_taken:.2f}")
-            print(len(moves))
-
-
-
-
+        puzzle.normalize()
+        puzzle.bfs()
 
     else:
         print(f"Unknown command: {command}")
