@@ -35,14 +35,31 @@ class Sbp:
     def available_moves(self):
         moves = []
         directions = {'up': (-1, 0), 'down': (1, 0), 'left': (0, -1), 'right': (0, 1)}
-        for i in range(self.height):
-            for j in range(self.width):
-                piece = self.board[i][j]
-                if piece > 2:  # Check for all pieces
-                    for direction, (dx, dy) in directions.items():
-                        ni, nj = i + dx, j + dy
-                        if 0 <= ni < self.height and 0 <= nj < self.width and self.board[ni][nj] == 0:
-                            moves.append((piece, direction))
+
+        for r in range(self.height):
+            for c in range(self.width):
+                piece = self.board[r][c]
+                if piece > 2:
+                    for direction_name, (dr, dc) in directions.items():
+                        # Check if the move is valid for the ENTIRE piece
+                        valid_move = True
+                        piece_coords = []  # Store coordinates of the entire piece
+
+                        # Find all cells belonging to the current piece
+                        for i in range(self.height):
+                            for j in range(self.width):
+                                if self.board[i][j] == piece:
+                                    piece_coords.append((i, j))
+
+                        for pr, pc in piece_coords:
+                            nr, nc = pr + dr, pc + dc  # New row and column after move
+                            if not (0 <= nr < self.height and 0 <= nc < self.width and self.board[nr][nc] == 0):
+                                valid_move = False
+                                break  # No need to check other cells of the piece
+
+                        if valid_move:
+                            moves.append((piece, direction_name))
+
         return moves
 def main():
     if len(sys.argv) < 3:
