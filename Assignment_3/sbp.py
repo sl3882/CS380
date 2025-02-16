@@ -90,13 +90,18 @@ class Sbp:
     def available_moves(self):
         """Gets all available moves."""
         moves = []
-        pieces = sorted(set(val for row in self.board for val in row if val >= 2))
+        pieces = sorted(
+            set(val for row in self.board for val in row if val >= 2))  # Sort for consistent move generation
         directions = ["up", "down", "left", "right"]
 
+        print(f"Pieces: {pieces}")
         for piece in pieces:
             for direction in directions:
                 if self.can_move(piece, direction):
+                    print(f"Valid move: ({piece}, {direction})")
                     moves.append((piece, direction))
+
+        print(f"All available moves: {moves}")
         return moves
 
     def apply_move(self, piece, direction):
