@@ -31,11 +31,8 @@ class SlidingBrickPuzzle:
         cloned_puzzle.height = self.height
         cloned_puzzle.board = copy.deepcopy(self.board)
         return cloned_puzzle
-    def is_solved(self):
-        for row in self.board:
-            if -1 in row:
-                return False
-        return True
+    def is_done(self):  # Method to check if the puzzle is solved
+        return not any(-1 in row for row in self.board)  # Check if any -1 (empty space) remains
 
 def main(command, filename=None):
     if command == "print" and filename:
@@ -45,7 +42,7 @@ def main(command, filename=None):
     elif command == "done" and filename:
         puzzle = SlidingBrickPuzzle()
         puzzle.load_state(filename)
-        print(puzzle.is_solved())
+        print(puzzle.is_done())
 
 if __name__ == "__main__":
     args = sys.argv[1:]
