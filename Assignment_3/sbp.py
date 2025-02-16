@@ -179,61 +179,73 @@ class Sbp:
         start_time = time.time()
         initial_state = self.clone_state()
         stack = [([], initial_state)]
-        visited = {tuple(tuple(row) for row in initial_state)}
-        nodes_explored = 1
+        visited = {tuple(tuple(row) for row in initial_state)}  # Use a set for faster lookups
+        nodes_explored = 0
 
         while stack:
             moves_list, current_state = stack.pop()
             nodes_explored += 1
 
-            temp_puzzle = Sbp()
-            temp_puzzle.width = self.width
-            temp_puzzle.height = self.height
-            temp_puzzle.board = current_state
-
-            if temp_puzzle.is_done():
+            if self.is_done_check(current_state):  # Helper function for is_done()
                 end_time = time.time()
-                for piece, direction in moves_list:
-                    print(f"({piece},{direction})")
-                print()
-                temp_puzzle.print_board()
-                print()
+                self.print_moves(moves_list)  # Helper function to print moves
+                self.print_board_from_state(current_state)  # Helper function to print board
                 print(nodes_explored)
                 print(f"{end_time - start_time:.2f}")
                 print(len(moves_list))
                 return True
 
-            # Generate available moves in a consistent order
-            available = []
-            pieces = set(val for row in temp_puzzle.board for val in row if val >= 2)
-            directions = ["left", "right", "up", "down"]
+            available_moves = self.get_available_moves(current_state)  # Helper function to get available moves
 
-            for piece in pieces:
-                for direction in directions:
-                    if temp_puzzle.can_move(piece, direction):
-                        available.append((piece, direction))
+            for piece, direction in available_moves:
+                new_state = self.get_next_state(current_state, piece, direction)  # Helper function to get next state
 
-            for piece, direction in available:
-                new_puzzle = Sbp()
-                new_puzzle.width = self.width
-                new_puzzle.height = self.height
-                new_puzzle.board = temp_puzzle.clone_state()
-                new_puzzle.apply_move_and_return_new_state(piece, direction)
-                new_puzzle.normalize()
-
-                board_tuple = tuple(tuple(row) for row in new_puzzle.board)
+                board_tuple = tuple(tuple(row) for row in new_state)
 
                 if board_tuple not in visited:
                     visited.add(board_tuple)
                     new_moves = moves_list + [(piece, direction)]
-                    stack.append((new_moves, new_puzzle.board))
-
-                # Debugging output
-                print(f"Exploring move: ({piece}, {direction})")
-                print(f"Current stack size: {len(stack)}")
-                print(f"Nodes explored: {nodes_explored}")
+                    stack.append((new_moves, new_state))
 
         return False
+
+    def is_done_check(self, state):
+        return not any(-1 in row for row in state)
+
+    def print_moves(self, moves_list):
+        for piece, direction in moves_list:
+            print(f"({piece},{direction})")
+        print()
+
+    def print_board_from_state(self, state):
+        print(f"{self.width},{self.height},")
+        for row in state:
+            print(",".join(map(str, row)) + ",")
+        print()
+
+    def get_available_moves(self, state):
+        available = []
+        pieces = set(val for row in state for val in row if val >= 2)
+        directions = ["left", "right", "up", "down"]  # Consistent move order
+
+        for piece in pieces:
+            for direction in directions:
+                temp_puzzle = Sbp()
+                temp_puzzle.width = self.width
+                temp_puzzle.height = self.height
+                temp_puzzle.board = state
+                if temp_puzzle.can_move(piece, direction):
+                    available.append((piece, direction))
+        return available
+
+    def get_next_state(self, current_state, piece, direction):
+        new_puzzle = Sbp()
+        new_puzzle.width = self.width
+        new_puzzle.height = self.height
+        new_puzzle.board = [row[:] for row in current_state]  # Directly copy the state
+        new_puzzle.apply_move(piece, direction)
+        new_puzzle.normalize()
+        return new_puzzle.board
 
     def ids(self):
         start_time = time.time()
