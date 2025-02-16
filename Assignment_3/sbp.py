@@ -100,7 +100,7 @@ class Sbp:
         for x, y in cells:
             self.board[y + dy][x + dx] = piece
 
-        self.normalize()
+        # self.normalize()
 
     def print_board(self):
         print(f"{self.width},{self.height},")
@@ -191,19 +191,18 @@ class Sbp:
         return
 
     def dfs(self, filename):
-        """Performs a depth-first search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
 
-        stack = [(self, [])]  # Stack of (state, moves)
-        visited = set()  # Set of visited states
+        stack = [(self, [])]
+        visited = set()
         nodes_explored = 0
 
         while stack:
             current_state, moves = stack.pop()
             current_tuple = current_state.board_to_tuple()
 
-            # Skip if this state has already been fully explored
+
             if current_tuple in visited:
                 continue
 
@@ -214,11 +213,10 @@ class Sbp:
                 self.print_solution(moves, current_state, nodes_explored, start_time)
                 return
 
-            # Explore available moves in reverse order (to prioritize certain moves)
             for piece, direction in reversed(current_state.available_moves()):
                 new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
-                new_state.normalize()
+                # new_state.normalize()
                 new_board_tuple = new_state.board_to_tuple()
 
                 if new_board_tuple not in visited:
