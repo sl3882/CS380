@@ -196,8 +196,9 @@ class Sbp:
         print("No solution found")
         return
 
-    def dfs(self, filename, depth_limit=20):
+    def dfs(self, filename):
         """Performs a depth-first search to solve the puzzle."""
+        depth_limit = 50
         start_time = time.time()
         self.load_board(filename)
         visited = {self.board_to_tuple()}
@@ -236,8 +237,10 @@ class Sbp:
             end_time = time.time()
             elapsed_time = end_time - start_time
 
-            for move in solution_moves:
-                print(move)
+            # Print the moves in the required format
+            for piece, direction in solution_moves:
+                print(f"({piece},{direction})")
+            print()
 
             self.print_board()
             print(nodes_explored)
