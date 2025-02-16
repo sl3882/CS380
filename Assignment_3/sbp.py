@@ -235,7 +235,7 @@ class Sbp:
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
                 new_puzzle.board = temp_puzzle.clone_state()
-                new_puzzle= new_puzzle.apply_move_and_return_new_state(piece, direction)
+                new_puzzle.apply_move_and_return_new_state(piece, direction)
                 new_puzzle.normalize()
 
                 board_tuple = tuple(tuple(row) for row in new_puzzle.board)
