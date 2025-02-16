@@ -1,4 +1,3 @@
-
 import sys
 import random
 from collections import deque
@@ -33,7 +32,6 @@ class Sbp:
             sys.exit(1)
 
     def clone_state(self):
-        """Creates a deep copy of the board state."""
         new_sbp = Sbp()
         new_sbp.width = self.width
         new_sbp.height = self.height
@@ -41,11 +39,9 @@ class Sbp:
         return new_sbp
 
     def is_done(self):
-        """Checks if the puzzle is solved."""
         return not any(-1 in row for row in self.board)
 
     def get_piece_cells(self, piece):
-        """Gets the coordinates of all cells occupied by a piece."""
         cells = []
         for y in range(self.height):
             for x in range(self.width):
@@ -54,7 +50,6 @@ class Sbp:
         return cells
 
     def can_move(self, piece, direction):
-        """Checks if a piece can move in a given direction."""
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
@@ -72,13 +67,12 @@ class Sbp:
             if target_cell == 0:
                 continue
 
-            if target_cell > 1 and (new_x, new_y) not in cells:  # Optimized
+            if target_cell > 1 and (new_x, new_y) not in cells:
                 return False
 
         return True
 
     def available_moves(self):
-        """Gets all available moves."""
         moves = []
         pieces = sorted(set(val for row in self.board for val in row if val >= 2))
         directions = ["up", "down", "left", "right"]
@@ -90,9 +84,8 @@ class Sbp:
         return moves
 
     def apply_move(self, piece, direction):
-        """Applies a move to the board."""
-        if not self.can_move(piece, direction):  # Check BEFORE applying
-            return  # Or raise an exception
+        if not self.can_move(piece, direction):
+            return
 
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
@@ -110,30 +103,26 @@ class Sbp:
         self.normalize()
 
     def print_board(self):
-        """Prints the board."""
         print(f"{self.width},{self.height},")
         for row in self.board:
-            print(", ".join(map(str, row)) + ",")
+            print(",".join(map(str, row)) + ",")
+
     def print_solution(self, moves, state, nodes_explored, start_time):
-        """Prints the solution (moves, final state, and statistics)."""
         end_time = time.time()
         elapsed_time = end_time - start_time
 
-        # Print the moves in the required format
         for piece, direction in moves:
             print(f"({piece},{direction})")
         print()
 
-        # Print the final state
         state.print_board()
         print()
 
-        # Print statistics
         print(nodes_explored)
         print(f"{elapsed_time:.2f}")
         print(len(moves))
+
     def compare_states(self, other):
-        """Compares the current state with another state."""
         if self.width != other.width or self.height != other.height:
             return False
         for row1, row2 in zip(self.board, other.board):
@@ -142,7 +131,6 @@ class Sbp:
         return True
 
     def normalize(self):
-        """Normalizes the piece numbering on the board."""
         next_idx = 3
         for y in range(self.height):
             for x in range(self.width):
@@ -159,7 +147,6 @@ class Sbp:
                     next_idx += 1
 
     def random_walk(self, N):
-        """Performs a random walk."""
         history = []
         for _ in range(N):
             moves = self.available_moves()
@@ -171,16 +158,14 @@ class Sbp:
         return history
 
     def board_to_tuple(self):
-        """Converts the board to a tuple of tuples for hashing."""
         return tuple(tuple(row) for row in self.board)
 
     def bfs(self, filename):
-        """Performs a breadth-first search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
 
-        queue = deque([(self, [])])  # Queue of (state, moves)
-        visited = {self.board_to_tuple()}  # Set of visited states
+        queue = deque([(self, [])])
+        visited = {self.board_to_tuple()}
         nodes_explored = 1
 
         while queue:
@@ -211,16 +196,21 @@ class Sbp:
         self.load_board(filename)
 
         stack = [(self, [])]  # Stack of (state, moves)
-        visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 1
+        visited = set()  # Set of visited states
+        nodes_explored = 0
 
         while stack:
-            current_state, moves = stack.pop()  # Pop from the stack (LIFO)
+            current_state, moves = stack.pop()
+            current_tuple = current_state.board_to_tuple()
+
+            # Skip if this state has already been fully explored
+            if current_tuple in visited:
+                continue
+
+            visited.add(current_tuple)
             nodes_explored += 1
 
             if current_state.is_done():
-
-                nodes_explored += 1
                 self.print_solution(moves, current_state, nodes_explored, start_time)
                 return
 
@@ -232,18 +222,17 @@ class Sbp:
                 new_board_tuple = new_state.board_to_tuple()
 
                 if new_board_tuple not in visited:
-                    visited.add(new_board_tuple)
-                    stack.append((new_state, moves + [(piece, direction)]))  # Push to the stack
+                    stack.append((new_state, moves + [(piece, direction)]))
 
         print("No solution found")
         return
 
+
     def ids(self, filename):
-        """Performs iterative deepening search to solve the puzzle."""
         start_time = time.time()
         nodes_explored = 0
-        for depth_limit in range(1, 50):  # Increase depth limit iteratively
-            visited = {self.board_to_tuple()}  # Reset visited states for each depth
+        for depth_limit in range(1, 50):
+            visited = {self.board_to_tuple()}
             def dls(state, moves, depth):
                 nonlocal nodes_explored
 
@@ -274,55 +263,45 @@ class Sbp:
         print("No solution found within reasonable depth")
 
     def manhattan_distance(self):
-        """Computes the Manhattan distance heuristic for A* search."""
+
         # Find the goal location (-1)
         goal_x, goal_y = None, None
         for y in range(self.height):
             for x in range(self.width):
-                if self.board[y][x] == -1:  # Identify goal location
-                    goal_x, goal_y = x, y
+                if self.board[y][x] == -1:
                     break
             if goal_x is not None:
                 break
 
         if goal_x is None:
-            return 0  # The puzzle is already solved if there's no goal
+            return 0
 
-        # Get master brick (piece 2) cells
         master_cells = self.get_piece_cells(2)
         if not master_cells:
-            return float('inf')  # No master brick found (shouldn't happen in a valid puzzle)
+            return float('inf')
 
-        # Centroid approach: calculate the center of the master brick
         centroid_x = sum(x for x, _ in master_cells) / len(master_cells)
         centroid_y = sum(y for _, y in master_cells) / len(master_cells)
 
-        # Calculate Manhattan distance from centroid to goal
         distance = abs(centroid_x - goal_x) + abs(centroid_y - goal_y)
 
         return distance
 
     def astar(self, filename):
-        """Performs an A* search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
         initial_state = self.clone_state()
 
-        # Dictionary to store cost so far (g) for each state
         g_score = {initial_state.board_to_tuple(): 0}
 
-        # Custom priority queue: list of (f_score, counter, state, moves)
-        # Using a counter as tiebreaker for states with equal f_score
         counter = 0
         pq = [(initial_state.manhattan_distance(), counter, initial_state, [])]
         counter += 1
 
-        # Set of visited states (board tuple representation)
         visited = set()
         nodes_explored = 0
 
         while pq:
-            # Find and remove the state with the minimum f_score
             min_idx = 0
             for i in range(1, len(pq)):
                 if pq[i][0] < pq[min_idx][0]:  # Compare f_scores
@@ -330,53 +309,39 @@ class Sbp:
                 elif pq[i][0] == pq[min_idx][0] and pq[i][1] < pq[min_idx][1]:  # Tiebreaker using counter
                     min_idx = i
 
-            # Pop the state with minimum f_score
             _, _, current_state, moves = pq.pop(min_idx)
             current_tuple = current_state.board_to_tuple()
 
-            # Skip if we've already processed this state
             if current_tuple in visited:
                 continue
 
             visited.add(current_tuple)
             nodes_explored += 1
 
-            # Check if puzzle is solved
             if current_state.is_done():
-
                 self.print_solution(moves, current_state, nodes_explored, start_time)
                 return
 
-            # Get current g score
             current_g = g_score[current_tuple]
 
-            # Explore all available moves
             for piece, direction in current_state.available_moves():
                 new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
                 new_state.normalize()
                 new_tuple = new_state.board_to_tuple()
 
-                # Calculate new g score (cost so far + 1 for this move)
                 new_g = current_g + 1
 
-                # If we haven't seen this state before OR found a better path
                 if new_tuple not in g_score or new_g < g_score[new_tuple]:
                     g_score[new_tuple] = new_g
 
-                    # Calculate f score = g score + heuristic
                     f_score = new_g + new_state.manhattan_distance()
 
-                    # Add to our custom priority queue
                     pq.append((f_score, counter, new_state, moves + [(piece, direction)]))
                     counter += 1
 
         print("No solution found")
         return
-
-
-
-
 
 def main():
     if len(sys.argv) < 3:
