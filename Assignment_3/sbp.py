@@ -132,8 +132,7 @@ class Sbp:
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
 
-    def state_to_string(self):
-        return ','.join(','.join(map(str, row)) for row in self.board)
+
 
     def bfs(self):
         start_time = time.time()
