@@ -198,7 +198,7 @@ class Sbp:
         initial_state = self.clone_state()
         stack = [(self, [])]  # Stack of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 0
+        nodes_explored = 1
 
         while stack:
             current_state, moves = stack.pop()  # Pop from the stack (LIFO)
@@ -207,7 +207,7 @@ class Sbp:
             if current_state.is_done():
                 end_time = time.time()
                 elapsed_time = end_time - start_time
-
+                nodes_explored += 1
                 # Print the moves in the required format
                 for piece, direction in moves:
                     print(f"({piece},{direction})")
