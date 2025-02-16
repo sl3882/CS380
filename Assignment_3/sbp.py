@@ -39,7 +39,7 @@ class Sbp:
         for r in range(self.height):
             for c in range(self.width):
                 piece = self.board[r][c]
-                if piece > 2:
+                if piece > 1:
                     for direction_name, (dr, dc) in directions.items():
                         # Check if the move is valid for the ENTIRE piece
                         valid_move = True
