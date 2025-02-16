@@ -235,6 +235,8 @@ class Sbp:
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
+
+
                 board_tuple = tuple(tuple(row) for row in new_puzzle.board)
 
                 if board_tuple not in visited:
