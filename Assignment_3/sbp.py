@@ -317,13 +317,14 @@ class Sbp:
         self.load_board(filename)
         initial_state = self.clone_state()
 
-        # Priority queue: (total_cost, move_count, state, moves)
-        queue = [(initial_state.manhattan_distance(), 0, initial_state, [])]
+        # Priority queue: (total_cost, unique_counter, move_count, state, moves)
+        counter = 0  # Unique counter to break ties in the priority queue
+        queue = [(initial_state.manhattan_distance(), counter, 0, initial_state, [])]
         visited = {initial_state.board_to_tuple(): 0}  # Track visited states and their costs
         nodes_explored = 0
 
         while queue:
-            total_cost, move_count, current_state, moves = heapq.heappop(queue)
+            total_cost, _, move_count, current_state, moves = heapq.heappop(queue)
             nodes_explored += 1
 
             if current_state.is_done():
@@ -359,7 +360,9 @@ class Sbp:
                 # Add to queue if the state is new or has a lower cost
                 if new_board_tuple not in visited or new_move_count < visited[new_board_tuple]:
                     visited[new_board_tuple] = new_move_count
-                    heapq.heappush(queue, (new_total_cost, new_move_count, new_state, moves + [(piece, direction)]))
+                    counter += 1  # Increment the unique counter
+                    heapq.heappush(queue,
+                                   (new_total_cost, counter, new_move_count, new_state, moves + [(piece, direction)]))
 
         print("No solution found")
         return
