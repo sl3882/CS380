@@ -31,7 +31,7 @@ class Sbp:
     def print_board(self):
         print(f"{self.width},{self.height},")
         for row in self.board:
-            print(",".join(map(str, row)))
+            print(",".join(map(str, row)) + ",")
 
 def main():
     if len(sys.argv) < 3:
