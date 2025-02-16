@@ -56,52 +56,35 @@ class Sbp:
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        print(f"Checking move for piece {piece} in direction {direction}")
-        print(f"Piece cells: {cells}")
-
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
-            print(f"Checking cell ({x}, {y}) -> ({new_x}, {new_y})")
 
-            # Check if the new position is within the board boundaries
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):
-                print(f"Cell ({new_x}, {new_y}) is out of bounds")
                 return False
 
             target_cell = self.board[new_y][new_x]
-            print(f"Target cell value: {target_cell}")
 
-            # Allow movement into empty cells (0) or goal cells (-1) for the master brick (2)
             if target_cell == 0:
-                print(f"Cell ({new_x}, {new_y}) is empty")
-                continue
-            if target_cell == -1 and piece == 2:
-                print(f"Cell ({new_x}, {new_y}) is a goal cell for master brick")
                 continue
 
-            # Disallow movement into other pieces or walls
-            if target_cell not in [0, -1] and (new_x, new_y) not in cells:
-                print(f"Cell ({new_x}, {new_y}) is blocked by another piece or wall")
+            if target_cell == -1 and piece != 2:
                 return False
 
-        print(f"Piece {piece} can move {direction}")
+            if target_cell not in [0, -1] and (new_x, new_y) not in cells:
+                return False
+
         return True
 
     def available_moves(self):
         """Gets all available moves."""
         moves = []
-        pieces = sorted(
-            set(val for row in self.board for val in row if val >= 2))  # Sort for consistent move generation
+        pieces = sorted(set(val for row in self.board for val in row if val >= 2))
         directions = ["up", "down", "left", "right"]
 
-        print(f"Pieces: {pieces}")
         for piece in pieces:
             for direction in directions:
                 if self.can_move(piece, direction):
-                    print(f"Valid move: ({piece}, {direction})")
                     moves.append((piece, direction))
-
-        print(f"All available moves: {moves}")
         return moves
 
     def apply_move(self, piece, direction):
