@@ -102,7 +102,7 @@ class Sbp:
 
         for x, y in cells:
             self.board[y + dy][x + dx] = piece
-        self.normalize()  # Normalize after each move
+        # Removed self.normalize() from here
 
 
     def print_board(self):
@@ -195,15 +195,17 @@ class Sbp:
         print("No solution found")
         return
 
-    def dfs(self, filename, depth_limit=20):  # Added depth limit
+
+
+    def dfs(self, filename):  # Increased depth limit
         """Performs a depth-first search to solve the puzzle."""
+        depth_limit = 50
         start_time = time.time()
         self.load_board(filename)
         initial_state = self.clone_state()
-        visited = {self.board_to_tuple()}
         nodes_explored = 0
 
-        def recursive_dfs(state, moves, depth):
+        def recursive_dfs(state, moves, depth, visited):
             nonlocal nodes_explored
 
             nodes_explored += 1
@@ -212,10 +214,12 @@ class Sbp:
                 end_time = time.time()
                 elapsed_time = end_time - start_time
 
-                for move in moves:
-                    print(move)
+                for piece, direction in moves:
+                    print(f"({piece},{direction})")
+                print()
 
                 state.print_board()
+                print()
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
@@ -232,16 +236,14 @@ class Sbp:
 
                 if new_board_tuple not in visited:
                     visited.add(new_board_tuple)
-                    if recursive_dfs(new_state, moves + [(piece, direction)], depth + 1):
+                    if recursive_dfs(new_state, moves + [(piece, direction)], depth + 1, visited.copy()):
                         return True  # Solution found in deeper recursion
-                    visited.remove(new_board_tuple)  # Backtrack: Remove from visited
 
             return False  # No solution found from this state
 
-        if not recursive_dfs(self, [], 0):
+        if not recursive_dfs(self, [], 0, {self.board_to_tuple()}):
             print("No solution found within depth limit")
         return
-
 
 
 
