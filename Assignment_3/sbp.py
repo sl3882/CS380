@@ -96,12 +96,9 @@ class Sbp:
             self.board[y + dy][x + dx] = piece
     def apply_move_and_return_new_state(self, piece, direction):
         """Returns a new state resulting from applying the move."""
-        new_state = Sbp()
-        new_state.width = self.width
-        new_state.height = self.height
-        new_state.board = self.clone_state()
-        new_state.apply_move(piece, direction)
-        return new_state
+
+
+        return self.apply_move(piece, direction)
 
     def compare_board(self, other_board):  # Method to compare this board with another
         if len(self.board) != len(other_board) or len(self.board[0]) != len(
