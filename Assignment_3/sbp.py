@@ -64,8 +64,10 @@ class Sbp:
 
             target_cell = self.board[new_y][new_x]
 
-            if target_cell == 0:
-                continue
+            # if target_cell == 0:
+            #     continue
+            if target_cell == 1:
+                return False
 
             if target_cell == -1 and piece != 2:
                 return False
@@ -92,20 +94,13 @@ class Sbp:
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        # Create a temporary copy of the board to ensure that we are not modifying the original board
-        temp_board = [row[:] for row in self.board]
-
-        # Clear old positions, ensuring goal cells remain
-        for x, y in cells:
-            if temp_board[y][x] != -1:  # Keep goal cell unchanged
-                temp_board[y][x] = 0
-
-        # Set new positions
         for x, y in cells:
             self.board[y][x] = 0
 
         for x, y in cells:
-            self.board[y + dy][x + dx] = piece
+            new_x, new_y = x + dx, y + dy
+            self.board[new_y][new_x] = piece
+
 
         self.normalize()
 
@@ -198,57 +193,48 @@ class Sbp:
 
     def dfs(self, filename):
         """Performs a depth-first search to solve the puzzle."""
-        depth_limit = 50
         start_time = time.time()
         self.load_board(filename)
-        visited = {self.board_to_tuple()}
+        initial_state = self.clone_state()
+        stack = [(self, [])]  # Stack of (state, moves)
+        visited = {self.board_to_tuple()}  # Set of visited states
         nodes_explored = 0
-        solution_found = False
-        solution_moves = []
 
-        def recursive_dfs(state, moves, depth):
-            nonlocal nodes_explored, solution_found, solution_moves
-
+        while stack:
+            current_state, moves = stack.pop()  # Pop from the stack (LIFO)
             nodes_explored += 1
 
-            if state.is_done():
-                solution_found = True
-                solution_moves = moves[:]  # Copy moves
-                return True
+            if current_state.is_done():
+                end_time = time.time()
+                elapsed_time = end_time - start_time
 
-            if depth >= depth_limit:
-                return False
+                # Print the moves in the required format
+                for piece, direction in moves:
+                    print(f"({piece},{direction})")
+                print()
 
-            for piece, direction in state.available_moves():
-                new_state = state.clone_state()
+                # Print the final state
+                current_state.print_board()
+                print()
+
+                # Print statistics
+                print(nodes_explored)
+                print(f"{elapsed_time:.2f}")
+                print(len(moves))
+                return
+
+            # Explore available moves in reverse order (to prioritize certain moves)
+            for piece, direction in reversed(current_state.available_moves()):
+                new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
                 new_state.normalize()
                 new_board_tuple = new_state.board_to_tuple()
 
                 if new_board_tuple not in visited:
                     visited.add(new_board_tuple)
-                    if recursive_dfs(new_state, moves + [(piece, direction)], depth + 1):
-                        return True
-                    visited.remove(new_board_tuple)  # Backtrack
+                    stack.append((new_state, moves + [(piece, direction)]))  # Push to the stack
 
-            return False
-
-        if recursive_dfs(self, [], 0):
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-
-            # Print the moves in the required format
-            for piece, direction in solution_moves:
-                print(f"({piece},{direction})")
-            print()
-
-            self.print_board()
-            print(nodes_explored)
-            print(f"{elapsed_time:.2f}")
-            print(len(solution_moves))
-
-        else:
-            print("No solution found within depth limit")
+        print("No solution found")
         return
 
 def main():
@@ -311,7 +297,6 @@ def main():
         puzzle.dfs(filename)
     else:
         print(f"Unknown command: {command}")
-
 
 if __name__ == "__main__":
     main()
