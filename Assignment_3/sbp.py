@@ -196,39 +196,43 @@ class Sbp:
         print("No solution found")
         return
 
-    def dfs(self, filename):
-        """Performs a depth-first search to solve the puzzle."""
+    def dfs(self, filename, depth_limit=None):
+        """
+        Performs a depth-limited search to solve the puzzle.
+        If depth_limit is None, it behaves as a standard DFS.
+        """
         start_time = time.time()
         self.load_board(filename)
+        initial_state = self.clone_state()
         stack = [(self, [])]  # Stack of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
         nodes_explored = 0
 
         while stack:
-            current_state, moves = stack.pop()  # Pop from the stack (LIFO)
+            current_state, moves = stack.pop()  # Use pop() for DFS instead of popleft()
             nodes_explored += 1
 
             if current_state.is_done():
                 end_time = time.time()
                 elapsed_time = end_time - start_time
 
-                # Print the moves in the required format
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
+                for move in moves:
+                    print(move)
 
-                # Print the final state
                 current_state.print_board()
-                print()
-
-                # Print statistics
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
                 return
 
-            # Explore available moves in reverse order (to prioritize certain moves)
-            for piece, direction in reversed(current_state.available_moves()):
+            # Skip expanding if we've reached the depth limit
+            if depth_limit is not None and len(moves) >= depth_limit:
+                continue
+
+            # Get available moves and process them in reverse order
+            # (to maintain the same priority as BFS when depth is the same)
+            available_moves = list(current_state.available_moves())
+            for piece, direction in reversed(available_moves):
                 new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
                 new_state.normalize()
@@ -236,7 +240,7 @@ class Sbp:
 
                 if new_board_tuple not in visited:
                     visited.add(new_board_tuple)
-                    stack.append((new_state, moves + [(piece, direction)]))  # Push to the stack
+                    stack.append((new_state, moves + [(piece, direction)]))
 
         print("No solution found")
         return
