@@ -3,16 +3,16 @@ import random
 from collections import deque
 import time
 
-class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
-    def __init__(self):  # Constructor method
-        self.width = 0  # Initialize width of the board
-        self.height = 0  # Initialize height of the board
-        self.board = []  # Initialize empty board
+class Sbp:
+    def __init__(self):
+        self.width = 0
+        self.height = 0
+        self.board = []
 
-    def load_board(self, filename):  # Method to load board from a file
+    def load_board(self, filename):
         try:
-            with open(filename, 'r') as file:  # Open the file in read mode
-                content = file.read().strip()  # Read and strip whitespace from file content
+            with open(filename, 'r') as file:
+                content = file.read().strip()
             # Parse width, height, and board
             parts = content.split(",")  # Split content by commas
             self.width = int(parts[0])  # Set width from first part
@@ -79,17 +79,6 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
         return moves  # Return list of available moves
 
 
-    # def apply_move(self, piece, direction):
-    #     cells = self.get_piece_cells(piece)
-    #     dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
-    #
-    #     # Clear old positions
-    #     for x, y in cells:
-    #         self.board[y][x] = 0 if self.board[y][x] != -1 else -1
-    #
-    #     # Set new positions
-    #     for x, y in cells:
-    #         self.board[y + dy][x + dx] = piece
 
     def apply_move(self, piece, direction):
         cells = self.get_piece_cells(piece)
@@ -202,55 +191,13 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     queue.append((new_moves, new_puzzle.board))
 
         return False
-    # def dfs(self):
-    #     start_time = time.time()
-    #     initial_state = self.clone_state()
-    #     stack = [([], initial_state)]
-    #     visited = [initial_state]
-    #     nodes_explored = 1
-    #
-    #     while stack:
-    #         moves_list, current_state = stack.pop()
-    #         nodes_explored += 1
-    #
-    #         temp_puzzle = Sbp()
-    #         temp_puzzle.width = self.width
-    #         temp_puzzle.height = self.height
-    #         temp_puzzle.board = current_state
-    #
-    #         if temp_puzzle.is_done():
-    #             # nodes_explored += 1
-    #             end_time = time.time()
-    #             for piece, direction in moves_list:
-    #                 print(f"({piece},{direction})")
-    #             print()
-    #             temp_puzzle.print_board()
-    #             print()
-    #             print(nodes_explored)
-    #             print(f"{end_time - start_time:.2f}")
-    #             print(len(moves_list))
-    #             return True
-    #
-    #         for piece, direction in temp_puzzle.available_moves():
-    #             new_puzzle = Sbp()
-    #             new_puzzle.width = self.width
-    #             new_puzzle.height = self.height
-    #
-    #             new_puzzle.board = temp_puzzle.clone_state()
-    #             new_puzzle.apply_move(piece, direction)
-    #             new_puzzle.normalize()
-    #
-    #             if not any(new_puzzle.compare_board(state) for state in visited):
-    #                 visited.append(new_puzzle.board)
-    #                 new_moves = moves_list + [(piece, direction)]
-    #                 stack.append((new_moves, new_puzzle.board))
-    # return False
 
     def dfs(self):
         start_time = time.time()
-        initial_state = self.clone_state()
+        initial_state = tuple(map(tuple, self.clone_state()))
         stack = [([], initial_state)]
-        visited = [initial_state]
+        visited = set()
+        visited.add(initial_state)
         nodes_explored = 1
 
         while stack:
@@ -260,7 +207,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             temp_puzzle = Sbp()
             temp_puzzle.width = self.width
             temp_puzzle.height = self.height
-            temp_puzzle.board = current_state
+            temp_puzzle.board = [list(row) for row in current_state]
 
             if temp_puzzle.is_done():
                 end_time = time.time()
@@ -274,7 +221,9 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 print(len(moves_list))
                 return True
 
-            for piece, direction in temp_puzzle.available_moves():
+            moves = self.get_ordered_moves(temp_puzzle)
+
+            for piece, direction in moves:
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
@@ -282,14 +231,36 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                if not any(new_puzzle.compare_board(state) for state in visited):
-                    visited.append(new_puzzle.board)
+                new_state = tuple(map(tuple, new_puzzle.board))
+                if new_state not in visited:
+                    visited.add(new_state)
                     new_moves = moves_list + [(piece, direction)]
-                    stack.append((new_moves, new_puzzle.board))
-                else:
-                    print(f"State already visited: {new_puzzle.board}")
+                    stack.append((new_moves, new_state))
 
         return False
+
+    def get_ordered_moves(self, puzzle):
+        moves = []
+        pieces = sorted(set(val for row in puzzle.board for val in row if val >= 2))
+        directions = ["up", "down", "left", "right"]
+
+        for piece in pieces:
+            for direction in directions:
+                if puzzle.can_move(piece, direction):
+                    moves.append((piece, direction))
+
+        return sorted(moves, key=lambda x: (x[0], directions.index(x[1])))
+
+
+
+
+
+
+
+
+
+
+
 
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
