@@ -34,16 +34,23 @@ class SlidingBrickPuzzle:
     def is_done(self):  # Method to check if the puzzle is solved
         return not any(-1 in row for row in self.board)  # Check if any -1 (empty space) remains
 
-def main(command, filename=None):
-    if command == "print" and filename:
-        puzzle = SlidingBrickPuzzle()
-        puzzle.load_state(filename)
-        puzzle.display_state()
-    elif command == "done" and filename:
-        puzzle = SlidingBrickPuzzle()
-        puzzle.load_state(filename)
-        print(puzzle.is_done())
+def main():  # Main function
+    if len(sys.argv) < 3:  # Check if enough command-line arguments are provided
+        print("Usage: python3 sbp.py <command> <filename> [args]")  # Print usage instructions
+        sys.exit(1)  # Exit with error code 1
+
+    command = sys.argv[1]  # Get command from command-line arguments
+    filename = sys.argv[2]  # Get filename from command-line arguments
+    puzzle = SlidingBrickPuzzle()  # Create Sbp instance
+
+    if command == "print":  # If command is "print"
+        puzzle.load_state(filename)  # Load board from file
+        puzzle.display_state()  # Print the board
+
+    elif command == "done":  # If command is "done"
+        puzzle.load_state(filename)  # Load board from file
+        print(puzzle.is_done())  # Print whether puzzle is solved
+
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    main(*args)
+    main()
