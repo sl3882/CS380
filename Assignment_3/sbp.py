@@ -114,7 +114,24 @@ class Sbp:
         print(f"{self.width},{self.height},")
         for row in self.board:
             print(", ".join(map(str, row)) + ",")
+    def print_solution(self, moves, state, nodes_explored, start_time):
+        """Prints the solution (moves, final state, and statistics)."""
+        end_time = time.time()
+        elapsed_time = end_time - start_time
 
+        # Print the moves in the required format
+        for piece, direction in moves:
+            print(f"({piece},{direction})")
+        print()
+
+        # Print the final state
+        state.print_board()
+        print()
+
+        # Print statistics
+        print(nodes_explored)
+        print(f"{elapsed_time:.2f}")
+        print(len(moves))
     def compare_states(self, other):
         """Compares the current state with another state."""
         if self.width != other.width or self.height != other.height:
@@ -161,7 +178,7 @@ class Sbp:
         """Performs a breadth-first search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
-        initial_state = self.clone_state()
+
         queue = deque([(self, [])])  # Queue of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
         nodes_explored = 0
@@ -171,16 +188,7 @@ class Sbp:
             nodes_explored += 1
 
             if current_state.is_done():
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-
-                for move in moves:
-                    print(move)
-
-                current_state.print_board()
-                print(nodes_explored)
-                print(f"{elapsed_time:.2f}")
-                print(len(moves))
+                self.print_solution(moves, current_state, nodes_explored, start_time)
                 return
 
             for piece, direction in current_state.available_moves():
@@ -196,59 +204,40 @@ class Sbp:
         print("No solution found")
         return
 
-    def dfs(self, filename, depth_limit=None):
-        """
-        Performs a depth-limited search to solve the puzzle.
-        If depth_limit is None, it behaves as a standard DFS.
-        """
+    def dfs(self, filename):
+        """Performs a depth-first search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
-        initial_state = self.clone_state()
+
         stack = [(self, [])]  # Stack of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 0
+        nodes_explored = 1
 
         while stack:
-            current_state, moves = stack.pop()  # Use pop() for DFS instead of popleft()
+            current_state, moves = stack.pop()  # Pop from the stack (LIFO)
             nodes_explored += 1
 
             if current_state.is_done():
                 end_time = time.time()
                 elapsed_time = end_time - start_time
+                nodes_explored += 1
+                # Print the moves in the required format
+                for piece, direction in moves:
+                    print(f"({piece},{direction})")
+                print()
 
-                for move in moves:
-                    print(move)
-
+                # Print the final state
                 current_state.print_board()
+                print()
+
+                # Print statistics
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
                 return
 
-            # Skip expanding if we've reached the depth limit
-            if depth_limit is not None and len(moves) >= depth_limit:
-                continue
-
-            # Get all valid moves from the current state
-            valid_moves = list(current_state.available_moves())
-
-            # Process moves in a specific order - we'll avoid prioritizing the problematic move
-            # Try reordering moves to avoid the specific sequence that leads to (4, 'left')
-            # This is a simple reordering - you may need more complex logic based on your game
-
-            # Custom sorting that might push (4, 'left') lower in priority if needed
-            def custom_sort_key(move):
-                piece, direction = move
-                # If this is piece 4 moving left, give it lower priority
-                if piece == 4 and direction == 'left':
-                    return (1, piece, direction)
-                return (0, piece, direction)
-
-            # Sort the moves with our custom priority
-            valid_moves.sort(key=custom_sort_key)
-
-            # Process in reverse order for DFS (lower priority moves get processed first)
-            for piece, direction in reversed(valid_moves):
+            # Explore available moves in reverse order (to prioritize certain moves)
+            for piece, direction in reversed(current_state.available_moves()):
                 new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
                 new_state.normalize()
@@ -256,7 +245,7 @@ class Sbp:
 
                 if new_board_tuple not in visited:
                     visited.add(new_board_tuple)
-                    stack.append((new_state, moves + [(piece, direction)]))
+                    stack.append((new_state, moves + [(piece, direction)]))  # Push to the stack
 
         print("No solution found")
         return
