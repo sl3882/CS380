@@ -100,7 +100,7 @@ class Sbp:
         for x, y in cells:
             self.board[y + dy][x + dx] = piece
 
-        # self.normalize()
+        self.normalize()
 
     def print_board(self):
         print(f"{self.width},{self.height},")
@@ -216,7 +216,7 @@ class Sbp:
             for piece, direction in reversed(current_state.available_moves()):
                 new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
-                new_state.normalize()
+                # new_state.normalize()
                 new_board_tuple = new_state.board_to_tuple()
 
                 if new_board_tuple not in visited:
