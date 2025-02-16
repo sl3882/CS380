@@ -59,17 +59,19 @@ class Sbp:
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
 
+            # Check if the new position is within the board boundaries
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):
                 return False
 
             target_cell = self.board[new_y][new_x]
 
+            # Allow movement into empty cells (0) or goal cells (-1) for the master brick (2)
             if target_cell == 0:
                 continue
+            if target_cell == -1 and piece == 2:
+                continue
 
-            if target_cell == -1 and piece != 2:
-                return False
-
+            # Disallow movement into other pieces or walls
             if target_cell not in [0, -1] and (new_x, new_y) not in cells:
                 return False
 
@@ -78,7 +80,8 @@ class Sbp:
     def available_moves(self):
         """Gets all available moves."""
         moves = []
-        pieces = sorted(set(val for row in self.board for val in row if val >= 2))
+        pieces = sorted(
+            set(val for row in self.board for val in row if val >= 2))  # Sort for consistent move generation
         directions = ["up", "down", "left", "right"]
 
         for piece in pieces:
@@ -87,20 +90,12 @@ class Sbp:
                     moves.append((piece, direction))
         return moves
 
+
     def apply_move(self, piece, direction):
         """Applies a move to the board."""
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        # Create a temporary copy of the board to ensure that we are not modifying the original board
-        # temp_board = [row[:] for row in self.board]
-
-        # Clear old positions, ensuring goal cells remain
-        # for x, y in cells:
-        #     if temp_board[y][x] != -1:  # Keep goal cell unchanged
-        #         temp_board[y][x] = 0
-
-        # Set new positions
         for x, y in cells:
             self.board[y][x] = 0
 
