@@ -240,6 +240,57 @@ class Sbp:
         print("No solution found")
         return
 
+    def ids(self, filename):
+        """Performs iterative deepening search to solve the puzzle."""
+        start_time = time.time()
+        nodes_explored = 0
+        for depth_limit in range(1, 50):  # Increase depth limit iteratively
+            visited = {self.board_to_tuple()}  # Reset visited states for each depth
+            def dls(state, moves, depth):
+                nonlocal nodes_explored
+
+                nodes_explored += 1
+                if state.is_done():
+                    end_time = time.time()
+                    elapsed_time = end_time - start_time
+                    for move in moves:
+                        print(move)
+                    state.print_board()
+                    print(nodes_explored)
+                    print(f"{elapsed_time:.2f}")
+                    print(len(moves))
+                    return True
+
+                if depth >= depth_limit:
+                    return False
+
+                for piece, direction in state.available_moves():
+                    new_state = state.clone_state()
+                    new_state.apply_move(piece, direction)
+                    new_state.normalize()
+                    new_board_tuple = new_state.board_to_tuple()
+
+                    if new_board_tuple not in visited:
+                        visited.add(new_board_tuple)
+                        if dls(new_state, moves + [(piece, direction)], depth + 1):
+                            return True
+                        visited.remove(new_board_tuple)
+                return False
+            self.load_board(filename)
+            if dls(self, [], 0):
+                return
+        print("No solution found within reasonable depth")
+
+
+
+
+
+
+
+
+
+
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: python3 sbp.py <command> <filename> [args]")
@@ -298,6 +349,16 @@ def main():
         puzzle.bfs(filename)
     elif command == "dfs":
         puzzle.dfs(filename)
+
+
+
+    elif command == "ids":
+        puzzle.ids(filename)
+
+
+
+
+
     else:
         print(f"Unknown command: {command}")
 
