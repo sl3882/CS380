@@ -64,8 +64,8 @@ class Sbp:
 
             target_cell = self.board[new_y][new_x]
 
-            if target_cell == 0:
-                continue
+            # if target_cell == 0:
+            #     continue
             if target_cell == 1:
                 return False
 
