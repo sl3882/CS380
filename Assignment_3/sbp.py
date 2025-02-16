@@ -229,10 +229,26 @@ class Sbp:
             if depth_limit is not None and len(moves) >= depth_limit:
                 continue
 
-            # Get available moves and process them in reverse order
-            # (to maintain the same priority as BFS when depth is the same)
-            available_moves = list(current_state.available_moves())
-            for piece, direction in reversed(available_moves):
+            # Get all valid moves from the current state
+            valid_moves = list(current_state.available_moves())
+
+            # Process moves in a specific order - we'll avoid prioritizing the problematic move
+            # Try reordering moves to avoid the specific sequence that leads to (4, 'left')
+            # This is a simple reordering - you may need more complex logic based on your game
+
+            # Custom sorting that might push (4, 'left') lower in priority if needed
+            def custom_sort_key(move):
+                piece, direction = move
+                # If this is piece 4 moving left, give it lower priority
+                if piece == 4 and direction == 'left':
+                    return (1, piece, direction)
+                return (0, piece, direction)
+
+            # Sort the moves with our custom priority
+            valid_moves.sort(key=custom_sort_key)
+
+            # Process in reverse order for DFS (lower priority moves get processed first)
+            for piece, direction in reversed(valid_moves):
                 new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
                 new_state.normalize()
