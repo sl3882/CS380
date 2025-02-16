@@ -202,11 +202,55 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     queue.append((new_moves, new_puzzle.board))
 
         return False
+    # def dfs(self):
+    #     start_time = time.time()
+    #     initial_state = self.clone_state()
+    #     stack = [([], initial_state)]
+    #     visited = [initial_state]
+    #     nodes_explored = 1
+    #
+    #     while stack:
+    #         moves_list, current_state = stack.pop()
+    #         nodes_explored += 1
+    #
+    #         temp_puzzle = Sbp()
+    #         temp_puzzle.width = self.width
+    #         temp_puzzle.height = self.height
+    #         temp_puzzle.board = current_state
+    #
+    #         if temp_puzzle.is_done():
+    #             # nodes_explored += 1
+    #             end_time = time.time()
+    #             for piece, direction in moves_list:
+    #                 print(f"({piece},{direction})")
+    #             print()
+    #             temp_puzzle.print_board()
+    #             print()
+    #             print(nodes_explored)
+    #             print(f"{end_time - start_time:.2f}")
+    #             print(len(moves_list))
+    #             return True
+    #
+    #         for piece, direction in temp_puzzle.available_moves():
+    #             new_puzzle = Sbp()
+    #             new_puzzle.width = self.width
+    #             new_puzzle.height = self.height
+    #
+    #             new_puzzle.board = temp_puzzle.clone_state()
+    #             new_puzzle.apply_move(piece, direction)
+    #             new_puzzle.normalize()
+    #
+    #             if not any(new_puzzle.compare_board(state) for state in visited):
+    #                 visited.append(new_puzzle.board)
+    #                 new_moves = moves_list + [(piece, direction)]
+    #                 stack.append((new_moves, new_puzzle.board))
+    # return False
     def dfs(self):
         start_time = time.time()
         initial_state = self.clone_state()
         stack = [([], initial_state)]
-        visited = [initial_state]
+        visited = set()  # Use a set for faster lookups
+        visited.add(tuple(map(tuple, initial_state)))  # Add initial state to visited
         nodes_explored = 1
 
         while stack:
@@ -219,7 +263,6 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
             temp_puzzle.board = current_state
 
             if temp_puzzle.is_done():
-                # nodes_explored += 1
                 end_time = time.time()
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
@@ -235,15 +278,16 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
-
                 new_puzzle.board = temp_puzzle.clone_state()
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                if not any(new_puzzle.compare_board(state) for state in visited):
-                    visited.append(new_puzzle.board)
+                new_state = tuple(map(tuple, new_puzzle.board))
+                if new_state not in visited:
+                    visited.add(new_state)
                     new_moves = moves_list + [(piece, direction)]
                     stack.append((new_moves, new_puzzle.board))
+
 
 
         return False
