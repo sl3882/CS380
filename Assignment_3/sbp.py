@@ -181,13 +181,14 @@ class Sbp:
 
         queue = deque([(self, [])])  # Queue of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 0
+        nodes_explored = 1
 
         while queue:
             current_state, moves = queue.popleft()
             nodes_explored += 1
 
             if current_state.is_done():
+                nodes_explored += 1
                 self.print_solution(moves, current_state, nodes_explored, start_time)
                 return
 
