@@ -71,10 +71,11 @@ class Sbp:
 
             if target_cell == -1 and piece != 2:
                 return False
-
+            #
             # if target_cell not in [0, -1] and (new_x, new_y) not in cells:
             #     return False
-
+            if target_cell not in 0 and (new_x, new_y) not in cells:
+                return False
         return True
 
     def available_moves(self):
