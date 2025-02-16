@@ -133,17 +133,17 @@ class Sbp:
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
 
+    def state_to_string(self):
+        return ','.join(','.join(map(str, row)) for row in self.board)
+
     def bfs(self):
-        """Breadth-First Search to solve the puzzle."""
         start_time = time.time()
-        initial_state = self.clone_state()
-        queue = deque([([], initial_state)])
-        visited = set()
-        visited.add(self.state_to_tuple(initial_state))
+        queue = deque([(self.clone_state(), [])])
+        visited = {self.state_to_string()}
         nodes_explored = 0
 
         while queue:
-            moves_list, current_state = queue.popleft()
+            current_state, moves = queue.popleft()
             nodes_explored += 1
 
             temp_puzzle = Sbp()
@@ -153,44 +153,20 @@ class Sbp:
 
             if temp_puzzle.is_done():
                 end_time = time.time()
-                # Print the moves
-                for piece, direction in moves_list:
-                    print(f"({piece},{direction})")
-                print()
+                return moves, current_state, nodes_explored, round(end_time - start_time, 2)
 
-                temp_puzzle.print_board()
-                print()
-                # Print statistics
-                print(nodes_explored)
-                print(f"{end_time - start_time:.2f}")
-                print(len(moves_list))
-                return True
-
-            # Try each possible move
             for piece, direction in temp_puzzle.available_moves():
-                # Create new puzzle state
-                new_puzzle = Sbp()
-                new_puzzle.width = self.width
-                new_puzzle.height = self.height
-                new_puzzle.board = [row[:] for row in current_state]
+                new_state = temp_puzzle.apply_move_and_return_new_state(piece, direction)
+                new_state.normalize()
+                state_str = new_state.state_to_string()
 
-                # Apply the move
-                new_puzzle.apply_move(piece, direction)
-                new_puzzle.normalize()
+                if state_str not in visited:
+                    visited.add(state_str)
+                    new_moves = moves + [(piece, direction)]
+                    queue.append((new_state.board, new_moves))
 
-                # Check if we've seen this state before
-                state_tuple = self.state_to_tuple(new_puzzle.board)
-                if state_tuple not in visited:
-                    visited.add(state_tuple)
-                    new_moves = moves_list + [(piece, direction)]
-                    queue.append((new_moves, new_puzzle.board))
-
-        return False
-
-    def state_to_tuple(self, state):
-        """Converts the board state to a tuple for hashing."""
-        return tuple(tuple(row) for row in state)
-
+        end_time = time.time()
+        return None, None, nodes_explored, round(end_time - start_time, 2)
 
 
 
@@ -258,11 +234,32 @@ def main():
             puzzle.board = state  # Update board state
             puzzle.print_board()  # Print updated board
 
-
     elif command == "bfs":
         puzzle.load_board(filename)
-        puzzle.normalize()
-        puzzle.bfs()
+        moves, final_state, nodes_explored, time_taken = puzzle.bfs()
+
+        if moves is None:
+            print("No solution found")
+            print(f"{nodes_explored}")
+            print(f"{time_taken:.2f}")
+            print("0")
+        else:
+            # Print moves
+            for piece, direction in moves:
+                print(f"({piece},{direction})")
+
+            # Print final state
+            temp_puzzle = Sbp()
+            temp_puzzle.width = puzzle.width
+            temp_puzzle.height = puzzle.height
+            temp_puzzle.board = final_state
+            temp_puzzle.print_board()
+
+            # Print statistics
+            print(nodes_explored)
+            print(f"{time_taken:.2f}")
+            print(len(moves))
+
 
 
 
