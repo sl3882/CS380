@@ -1,7 +1,7 @@
 import sys
 from random import choice
-import time
 from collections import deque
+import time
 
 class Sbp:
     def __init__(self):
@@ -26,11 +26,7 @@ class Sbp:
             sys.exit(1)
 
     def clone_state(self):
-        new_sbp = Sbp()
-        new_sbp.width = self.width
-        new_sbp.height = self.height
-        new_sbp.board = [row[:] for row in self.board]
-        return new_sbp
+        return [row[:] for row in self.board]
 
     def is_done(self):
         return not any(-1 in row for row in self.board)
@@ -93,7 +89,10 @@ class Sbp:
 
     def apply_move_and_return_new_state(self, piece, direction):
         """Returns a new state resulting from applying the move."""
-        new_state = self.clone_state()
+        new_state = Sbp()
+        new_state.width = self.width
+        new_state.height = self.height
+        new_state.board = self.clone_state()
         new_state.apply_move(piece, direction)
         return new_state
 
@@ -135,46 +134,57 @@ class Sbp:
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
 
-    def board_to_tuple(self):
-        return tuple(tuple(row) for row in self.board)
+    def bfs(self):
+        """Performs Breadth-First Search to find a solution to the puzzle."""
+        start_time = time.time()  # Start timer
+        visited = set()  # Track visited states
+        queue = deque()  # Queue for BFS
+        initial_state = self.clone_state()  # Initial state of the board
+        queue.append(([], initial_state))  # (moves, state)
 
-    def bfs(self, filename):
-        start_time = time.time()
-        self.load_board(filename)
-        initial_state = self.clone_state()
-        queue = deque([(self, [])])  # Queue of (state, moves)
-        visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 0
+        nodes_explored = 0  # Counter for nodes explored
 
         while queue:
-            current_state, moves = queue.popleft()
-            nodes_explored += 1
+            moves, current_board = queue.popleft()  # Get the next state to explore
+            nodes_explored += 1  # Increment nodes explored
 
-            if current_state.is_done():
-                end_time = time.time()
-                elapsed_time = end_time - start_time
+            # Create a temporary Sbp object to manipulate the board
+            temp_puzzle = Sbp()
+            temp_puzzle.width = self.width
+            temp_puzzle.height = self.height
+            temp_puzzle.board = current_board
 
+            # Check if the current state is the goal state
+            if temp_puzzle.is_done():
+                end_time = time.time()  # Stop timer
+                # Print the required output
                 for move in moves:
-                    print(move)
-
-                current_state.print_board()
+                    print(f"({move[0]},{move[1]})")
+                temp_puzzle.print_board()
                 print(nodes_explored)
-                print(f"{elapsed_time:.2f}")
+                print(f"{end_time - start_time:.2f}")
                 print(len(moves))
-                return
+                return moves  # Return the sequence of moves
 
-            for piece, direction in current_state.available_moves():
-                new_state = current_state.clone_state()
-                new_state.apply_move(piece, direction)
-                new_state.normalize()
-                new_board_tuple = new_state.board_to_tuple()
+            # Add the current state to visited
+            visited.add(tuple(map(tuple, current_board)))
 
-                if new_board_tuple not in visited:
-                    visited.add(new_board_tuple)
-                    queue.append((new_state, moves + [(piece, direction)]))
+            # Generate all possible moves and add them to the queue
+            for move in temp_puzzle.available_moves():
+                piece, direction = move
+                new_state = temp_puzzle.apply_move_and_return_new_state(piece, direction)
+                new_state_tuple = tuple(map(tuple, new_state.board))
 
-        print("No solution found")
-        return
+                if new_state_tuple not in visited:
+                    queue.append((moves + [(piece, direction)], new_state.board))
+
+        # If no solution is found
+        end_time = time.time()
+        print("No solution found.")
+        print(nodes_explored)
+        print(f"{end_time - start_time:.2f}")
+        print(0)
+        return None
 
 def main():
     if len(sys.argv) < 3:
@@ -204,8 +214,8 @@ def main():
         piece = int(move[0])
         direction = move[1]
         puzzle.load_board(filename)
-        puzzle.apply_move(piece, direction)
-        puzzle.print_board()
+        new_state = puzzle.apply_move_and_return_new_state(piece, direction)
+        new_state.print_board()
     elif command == "compare":
         if len(sys.argv) < 4:
             print("Usage: python3 sbp.py compare <filename1> <filename2>")
@@ -219,19 +229,20 @@ def main():
         puzzle.load_board(filename)
         puzzle.normalize()
         puzzle.print_board()
-    elif command == "random":  # If command is "random"
-        if len(sys.argv) != 4:  # Check if correct number of arguments
-            print("Usage: python3 sbp.py random <filename> <N>")  # Print usage instructions
-            sys.exit(1)  # Exit with error code 1
-        puzzle.load_board(filename)  # Load board from file
-        N = int(sys.argv[3])  # Get number of random moves
-        puzzle.print_board()  # Print initial board
-        for (piece, direction), state in puzzle.random_walk(N):  # Perform random walk
-            print(f"({piece}, {direction})")  # Print each move
-            puzzle.board = state  # Update board state
-            puzzle.print_board()  # Print updated board
+    elif command == "random":
+        if len(sys.argv) != 4:
+            print("Usage: python3 sbp.py random <filename> <N>")
+            sys.exit(1)
+        puzzle.load_board(filename)
+        N = int(sys.argv[3])
+        puzzle.print_board()
+        for (piece, direction), state in puzzle.random_walk(N):
+            print(f"({piece}, {direction})")
+            puzzle.board = state
+            puzzle.print_board()
     elif command == "bfs":
-        puzzle.bfs(filename)
+        puzzle.load_board(filename)
+        puzzle.bfs()
     else:
         print(f"Unknown command: {command}")
 
