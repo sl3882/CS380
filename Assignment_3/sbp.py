@@ -66,18 +66,75 @@ class Sbp:
 
         return True  # If all checks pass, the move is valid
 
-    def available_moves(self):  # Method to get all available moves
-        moves = []  # Initialize empty list for moves
-        # Get pieces in sorted order for consistent move generation
-        pieces = set(val for row in self.board for val in row if val >= 2)
-        directions = ["up", "down", "left", "right"]  # List of possible directions
+    def available_moves(self):
+        """Returns a list of all available moves as (piece, direction)."""
+        moves = []
+        piece_positions = self.get_piece_positions()
 
-        for piece in pieces:  # Iterate over pieces
-            for direction in directions:  # Iterate over directions
-                if self.can_move(piece, direction):  # Check if move is valid
-                    moves.append((piece, direction))  # Add valid move to list
-        return moves  # Return list of available moves
+        for piece, positions in piece_positions.items():
+            # Get the full piece dimensions
+            min_r = min(r for r, _ in positions)
+            max_r = max(r for r, _ in positions)
+            min_c = min(c for _, c in positions)
+            max_c = max(c for _, c in positions)
 
+            # Check all cells the piece would move to in each direction
+            # Up movement
+            if min_r > 0:
+                can_move = True
+                for r, c in positions:
+                    # Check if the target cell is empty or part of the same piece
+                    if self.board[r - 1][c] != 0 and (r - 1, c) not in positions:
+                        can_move = False
+                        break
+                if can_move:
+                    moves.append((piece, "up"))
+
+            # Down movement
+            if max_r < self.height - 1:
+                can_move = True
+                for r, c in positions:
+                    if self.board[r + 1][c] != 0 and (r + 1, c) not in positions:
+                        can_move = False
+                        break
+                if can_move:
+                    moves.append((piece, "down"))
+
+            # Left movement
+            if min_c > 0:
+                can_move = True
+                for r, c in positions:
+                    if self.board[r][c - 1] != 0 and (r, c - 1) not in positions:
+                        can_move = False
+                        break
+                if can_move:
+                    moves.append((piece, "left"))
+
+            # Right movement
+            if max_c < self.width - 1:
+                can_move = True
+                for r, c in positions:
+                    if self.board[r][c + 1] != 0 and (r, c + 1) not in positions:
+                        can_move = False
+                        break
+                if can_move:
+                    moves.append((piece, "right"))
+
+        return moves
+    def get_piece_positions(self):
+        """Returns a dictionary mapping piece IDs to their positions on the board."""
+        pieces = {}
+        # Scan every cell in the board
+        for r in range(self.height):
+            for c in range(self.width):
+                piece = self.board[r][c]
+                # Only track pieces (numbers > 0), ignore walls (1) and empty spaces (0)
+                if piece > 0:
+                    # Create list for new pieces, append to existing ones
+                    if piece not in pieces:
+                        pieces[piece] = []
+                    pieces[piece].append((r, c))
+        return pieces
     def apply_move(self, piece, direction):
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
