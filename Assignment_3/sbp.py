@@ -47,7 +47,19 @@ class Sbp:
                         if self.board[i][j] == piece:
                             ni, nj = i + dx, j + dy
                             if 0 <= ni < self.height and 0 <= nj < self.width and self.board[ni][nj] == 0:
-                                moves.append((piece, direction))
+                                # Check if the entire piece can move in the given direction
+                                can_move = True
+                                for k in range(self.height):
+                                    for l in range(self.width):
+                                        if self.board[k][l] == piece:
+                                            nk, nl = k + dx, l + dy
+                                            if not (0 <= nk < self.height and 0 <= nl < self.width and self.board[nk][nl] == 0):
+                                                can_move = False
+                                                break
+                                    if not can_move:
+                                        break
+                                if can_move:
+                                    moves.append((piece, direction))
         return moves
 def main():
     if len(sys.argv) < 3:
