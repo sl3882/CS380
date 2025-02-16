@@ -10,6 +10,7 @@ class Sbp:
         self.board = []
 
     def load_board(self, filename):
+        """Loads the board from a file."""
         try:
             with open(filename, 'r') as file:
                 content = file.read().strip()
@@ -64,10 +65,8 @@ class Sbp:
 
             target_cell = self.board[new_y][new_x]
 
-            # if target_cell == 0:
-            #     continue
-            if target_cell == 1:
-                return False
+            if target_cell == 0:
+                continue
 
             if target_cell == -1 and piece != 2:
                 return False
@@ -80,7 +79,7 @@ class Sbp:
     def available_moves(self):
         """Gets all available moves."""
         moves = []
-        pieces = sorted(set(val for row in self.board for val in row if val >= 2))
+        pieces = sorted(set(val for row in self.board for val in row if val >= 2))  # Sort for consistent move generation.
         directions = ["up", "down", "left", "right"]
 
         for piece in pieces:
@@ -94,21 +93,23 @@ class Sbp:
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
+        old_positions = {(x, y): self.board[y][x] for x, y in cells}
+
         for x, y in cells:
+            if old_positions[(x, y)] == -1:
+                continue
             self.board[y][x] = 0
 
         for x, y in cells:
-            new_x, new_y = x + dx, y + dy
-            self.board[new_y][new_x] = piece
+            self.board[y + dy][x + dx] = piece
+        # Removed self.normalize() from here
 
-
-        self.normalize()
 
     def print_board(self):
         """Prints the board."""
         print(f"{self.width},{self.height},")
         for row in self.board:
-            print(",".join(map(str, row)) + ",")
+            print(", ".join(map(str, row)) + ",")
 
     def compare_states(self, other):
         """Compares the current state with another state."""
@@ -159,7 +160,7 @@ class Sbp:
         initial_state = self.clone_state()
         queue = deque([(self, [])])  # Queue of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 0
+        nodes_explored = 1
 
         while queue:
             current_state, moves = queue.popleft()
@@ -167,12 +168,15 @@ class Sbp:
 
             if current_state.is_done():
                 end_time = time.time()
+                nodes_explored += 1
                 elapsed_time = end_time - start_time
 
-                for move in moves:
-                    print(move)
+                for piece, direction in moves:
+                    print(f"({piece},{direction})")
+                print()
 
                 current_state.print_board()
+                print()
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
@@ -191,51 +195,60 @@ class Sbp:
         print("No solution found")
         return
 
-    def dfs(self, filename):
+    def dfs(self, filename, depth_limit=20):  # Added depth limit
         """Performs a depth-first search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
         initial_state = self.clone_state()
-        stack = [(self, [])]  # Stack of (state, moves)
-        visited = {self.board_to_tuple()}  # Set of visited states
+        visited = {self.board_to_tuple()}
         nodes_explored = 0
 
-        while stack:
-            current_state, moves = stack.pop()  # Pop from the stack (LIFO)
+        def recursive_dfs(state, moves, depth):
+            nonlocal nodes_explored
+
             nodes_explored += 1
 
-            if current_state.is_done():
+            if state.is_done():
                 end_time = time.time()
                 elapsed_time = end_time - start_time
 
-                # Print the moves in the required format
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
+                for move in moves:
+                    print(move)
 
-                # Print the final state
-                current_state.print_board()
-                print()
-
-                # Print statistics
+                state.print_board()
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
-                return
+                return True  # Solution found
 
-            # Explore available moves in reverse order (to prioritize certain moves)
-            for piece, direction in reversed(current_state.available_moves()):
-                new_state = current_state.clone_state()
+            if depth >= depth_limit:
+                return False  # Depth limit reached, backtrack
+
+            for piece, direction in state.available_moves():
+                new_state = state.clone_state()
                 new_state.apply_move(piece, direction)
                 new_state.normalize()
                 new_board_tuple = new_state.board_to_tuple()
 
                 if new_board_tuple not in visited:
                     visited.add(new_board_tuple)
-                    stack.append((new_state, moves + [(piece, direction)]))  # Push to the stack
+                    if recursive_dfs(new_state, moves + [(piece, direction)], depth + 1):
+                        return True  # Solution found in deeper recursion
+                    visited.remove(new_board_tuple)  # Backtrack: Remove from visited
 
-        print("No solution found")
+                # Debugging output
+                print(f"Exploring move: ({piece}, {direction})")
+                print(f"Current depth: {depth}")
+                print(f"Current board state:\n{new_state.board}")
+
+            return False  # No solution found from this state
+
+        if not recursive_dfs(self, [], 0):
+            print("No solution found within depth limit")
         return
+
+
+
 
 def main():
     if len(sys.argv) < 3:
@@ -297,6 +310,7 @@ def main():
         puzzle.dfs(filename)
     else:
         print(f"Unknown command: {command}")
+
 
 if __name__ == "__main__":
     main()
