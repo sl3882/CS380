@@ -75,6 +75,9 @@ class Sbp:
         return moves
 
     def apply_move(self, piece, direction):
+        if not self.can_move(piece, direction):  # Crucial: Check *before* applying
+            return  # Or raise an exception if you prefer to be explicit
+
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
@@ -245,7 +248,8 @@ class Sbp:
         new_puzzle.width = self.width
         new_puzzle.height = self.height
         new_puzzle.board = [row[:] for row in current_state]  # Directly copy the state
-        new_puzzle.apply_move(piece, direction)
+
+        new_puzzle.apply_move(piece, direction)  # Apply move in the new puzzle
         new_puzzle.normalize()
         return new_puzzle.board
 
