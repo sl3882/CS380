@@ -59,21 +59,24 @@ class Sbp:
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
 
-            # if not (0 <= new_x < self.width and 0 <= new_y < self.height):
-            #     return False
+            # Optimized boundary check (combined)
+            if not (0 <= new_x < self.width and 0 <= new_y < self.height):
+                return False
 
             target_cell = self.board[new_y][new_x]
 
+            # Optimized target cell check (combined and simplified)
+            if target_cell == 1 or (target_cell == -1 and piece != 2):  # Wall or incorrect goal entry
+                return False
+
+            # Empty cell, move is okay. No need for explicit continue since the other conditions return.
             if target_cell == 0:
                 continue
-            if target_cell == 1:
+
+            # Check for collision with other pieces (excluding cells of the moving piece itself)
+            if target_cell > 1 and (new_x, new_y) not in cells:  # Use > 1 to include all other bricks
                 return False
 
-            if target_cell == -1 and piece != 2:
-                return False
-
-            if target_cell not in [0 - 1] and (new_x, new_y) not in cells:
-                return False
         return True
 
     def available_moves(self):
