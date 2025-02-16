@@ -70,8 +70,7 @@ class Sbp:
     def apply_move(self, piece, direction):
         """Applies the given move to the board if it is available."""
         if (piece, direction) not in self.available_moves():
-            print(f"Move ({piece}, {direction}) is not available.")
-            return
+            return  # Do nothing if the move is not available
 
         directions = {'up': (-1, 0), 'down': (1, 0), 'left': (0, -1), 'right': (0, 1)}
         dx, dy = directions[direction]
