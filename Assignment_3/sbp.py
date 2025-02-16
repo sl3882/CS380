@@ -93,19 +93,21 @@ class Sbp:
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
         # Create a temporary copy of the board to ensure that we are not modifying the original board
-        temp_board = [row[:] for row in self.board]
+        # temp_board = [row[:] for row in self.board]
 
         # Clear old positions, ensuring goal cells remain
-        for x, y in cells:
-            if temp_board[y][x] != -1:  # Keep goal cell unchanged
-                temp_board[y][x] = 0
+        # for x, y in cells:
+        #     if temp_board[y][x] != -1:  # Keep goal cell unchanged
+        #         temp_board[y][x] = 0
 
         # Set new positions
         for x, y in cells:
             self.board[y][x] = 0
 
         for x, y in cells:
-            self.board[y + dy][x + dx] = piece
+            new_x, new_y = x + dx, y + dy
+            self.board[new_y][new_x] = piece
+
 
         self.normalize()
 
@@ -202,17 +204,17 @@ class Sbp:
         self.load_board(filename)
         visited = {self.board_to_tuple()}
         nodes_explored = 0
-        solution_found = False
         solution_moves = []
+        solution_found = False
 
         def recursive_dfs(state, moves, depth):
-            nonlocal nodes_explored, solution_found, solution_moves
+            nonlocal nodes_explored, solution_moves, solution_found
 
             nodes_explored += 1
 
             if state.is_done():
                 solution_found = True
-                solution_moves = moves[:]  # Copy moves
+                solution_moves = moves[:]  # Copy the moves
                 return True
 
             if depth >= depth_limit:
@@ -308,7 +310,6 @@ def main():
         puzzle.dfs(filename)
     else:
         print(f"Unknown command: {command}")
-
 
 if __name__ == "__main__":
     main()
