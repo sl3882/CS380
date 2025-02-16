@@ -180,9 +180,10 @@ class Sbp:
                 # Check if we've seen this state before
                 is_new_state = True
                 for visited_state in visited:
-                    if new_puzzle.compare_board(visited_state):
+                    if new_puzzle.compare_states(visited_state):
                         is_new_state = False
                         break
+
 
                 if is_new_state:
                     visited.append(new_puzzle.board)
