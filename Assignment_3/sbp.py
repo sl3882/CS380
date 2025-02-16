@@ -96,8 +96,6 @@ class Sbp:
             self.board[y + dy][x + dx] = piece
     def apply_move_and_return_new_state(self, piece, direction):
         """Returns a new state resulting from applying the move."""
-
-
         return self.apply_move(piece, direction)
 
     def compare_board(self, other_board):  # Method to compare this board with another
