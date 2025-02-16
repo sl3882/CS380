@@ -96,13 +96,13 @@ class Sbp:
         return new_state
 
     def compare_states(self, other):
-        """Compares the current state with another state."""
-        if self.width != other.width or self.height != other.height:
-            return False
-        for row1, row2 in zip(self.board, other.board):
-            if row1 != row2:
-                return False
-        return True
+        def compare_board(self, other_board):  # Method to compare this board with another
+            if len(self.board) != len(other_board) or len(self.board[0]) != len(
+                    other_board[0]):  # Check if dimensions match
+                return False  # Return False if dimensions don't match
+            return all(self.board[i][j] == other_board[i][j]  # Compare all cells
+                       for i in range(len(self.board))
+                       for j in range(len(self.board[0])))
 
     def normalize(self):  # Method to normalize the board
         next_idx = 3  # Start with index 3 (1 and 2 are reserved)
