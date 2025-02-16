@@ -201,6 +201,9 @@ class Sbp:
                 return True
 
             available_moves = self.get_available_moves(current_state)  # Helper function to get available moves
+            if (2, "left") in available_moves:
+                available_moves.remove((2, "left"))  # Remove from original list
+                available_moves.insert(0, (2, "left"))  # Insert at the beginning
 
             for piece, direction in available_moves:
                 new_state = self.get_next_state(current_state, piece, direction)  # Helper function to get next state
