@@ -33,6 +33,8 @@ def main(command, filename=None):
     else:
         print("Unknown command or missing filename")
 
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     main(*args)
