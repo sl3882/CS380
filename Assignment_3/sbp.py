@@ -304,7 +304,7 @@ def main():
     elif command == "bfs":
         puzzle.bfs(filename)
     elif command == "dfs":
-        puzzle.bfs(filename)
+        puzzle.dfs(filename)
     else:
         print(f"Unknown command: {command}")
 
