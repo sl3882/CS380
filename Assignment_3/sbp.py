@@ -10,7 +10,6 @@ class Sbp:
         self.board = []
 
     def load_board(self, filename):
-        """Loads the board from a file."""
         try:
             with open(filename, 'r') as file:
                 content = file.read().strip()
@@ -79,7 +78,7 @@ class Sbp:
     def available_moves(self):
         """Gets all available moves."""
         moves = []
-        pieces = sorted(set(val for row in self.board for val in row if val >= 2))  # Sort for consistent move generation.
+        pieces = sorted(set(val for row in self.board for val in row if val >= 2))
         directions = ["up", "down", "left", "right"]
 
         for piece in pieces:
@@ -93,23 +92,28 @@ class Sbp:
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        old_positions = {(x, y): self.board[y][x] for x, y in cells}
+        # Create a temporary copy of the board to ensure that we are not modifying the original board
+        temp_board = [row[:] for row in self.board]
 
+        # Clear old positions, ensuring goal cells remain
         for x, y in cells:
-            if old_positions[(x, y)] == -1:
-                continue
+            if temp_board[y][x] != -1:  # Keep goal cell unchanged
+                temp_board[y][x] = 0
+
+        # Set new positions
+        for x, y in cells:
             self.board[y][x] = 0
 
         for x, y in cells:
             self.board[y + dy][x + dx] = piece
-        # Removed self.normalize() from here
 
+        self.normalize()
 
     def print_board(self):
         """Prints the board."""
         print(f"{self.width},{self.height},")
         for row in self.board:
-            print(", ".join(map(str, row)) + ",")
+            print(",".join(map(str, row)) + ",")
 
     def compare_states(self, other):
         """Compares the current state with another state."""
@@ -160,7 +164,7 @@ class Sbp:
         initial_state = self.clone_state()
         queue = deque([(self, [])])  # Queue of (state, moves)
         visited = {self.board_to_tuple()}  # Set of visited states
-        nodes_explored = 1
+        nodes_explored = 0
 
         while queue:
             current_state, moves = queue.popleft()
@@ -168,15 +172,12 @@ class Sbp:
 
             if current_state.is_done():
                 end_time = time.time()
-                nodes_explored += 1
                 elapsed_time = end_time - start_time
 
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
+                for move in moves:
+                    print(move)
 
                 current_state.print_board()
-                print()
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
@@ -195,34 +196,27 @@ class Sbp:
         print("No solution found")
         return
 
-    def dfs(self, filename, depth_limit=20):  # Added depth limit
+    def dfs(self, filename, depth_limit=20):
         """Performs a depth-first search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
-        initial_state = self.clone_state()
         visited = {self.board_to_tuple()}
         nodes_explored = 0
+        solution_found = False
+        solution_moves = []
 
         def recursive_dfs(state, moves, depth):
-            nonlocal nodes_explored
+            nonlocal nodes_explored, solution_found, solution_moves
 
             nodes_explored += 1
 
             if state.is_done():
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-
-                for move in moves:
-                    print(move)
-
-                state.print_board()
-                print(nodes_explored)
-                print(f"{elapsed_time:.2f}")
-                print(len(moves))
-                return True  # Solution found
+                solution_found = True
+                solution_moves = moves[:]  # Copy moves
+                return True
 
             if depth >= depth_limit:
-                return False  # Depth limit reached, backtrack
+                return False
 
             for piece, direction in state.available_moves():
                 new_state = state.clone_state()
@@ -233,22 +227,26 @@ class Sbp:
                 if new_board_tuple not in visited:
                     visited.add(new_board_tuple)
                     if recursive_dfs(new_state, moves + [(piece, direction)], depth + 1):
-                        return True  # Solution found in deeper recursion
-                    visited.remove(new_board_tuple)  # Backtrack: Remove from visited
+                        return True
+                    visited.remove(new_board_tuple)  # Backtrack
 
-                # Debugging output
-                print(f"Exploring move: ({piece}, {direction})")
-                print(f"Current depth: {depth}")
-                print(f"Current board state:\n{new_state.board}")
+            return False
 
-            return False  # No solution found from this state
+        if recursive_dfs(self, [], 0):
+            end_time = time.time()
+            elapsed_time = end_time - start_time
 
-        if not recursive_dfs(self, [], 0):
+            for move in solution_moves:
+                print(move)
+
+            self.print_board()
+            print(nodes_explored)
+            print(f"{elapsed_time:.2f}")
+            print(len(solution_moves))
+
+        else:
             print("No solution found within depth limit")
         return
-
-
-
 
 def main():
     if len(sys.argv) < 3:
