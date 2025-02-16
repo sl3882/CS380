@@ -64,16 +64,14 @@ class Sbp:
 
             target_cell = self.board[new_y][new_x]
 
-            if target_cell == 0:
-                continue
+            # if target_cell == 0:
+            #     continue
             if target_cell == 1:
                 return False
 
-            if target_cell == -1 and piece != 2:
+            elif target_cell == -1 and piece != 2:
                 return False
-
-
-            if target_cell not in [0-1] and (new_x, new_y) not in cells:
+            elif target_cell not in [0-1] and (new_x, new_y) not in cells:
                 return False
         return True
 
