@@ -1,4 +1,4 @@
-import heapq
+
 import sys
 import random
 from collections import deque
@@ -291,6 +291,7 @@ class Sbp:
 
     def manhattan_distance(self):
         """Computes the Manhattan distance heuristic for A* search."""
+        # Find the goal location (-1)
         goal_x, goal_y = None, None
         for y in range(self.height):
             for x in range(self.width):
@@ -300,16 +301,22 @@ class Sbp:
             if goal_x is not None:
                 break
 
-        master_cells = self.get_piece_cells(2)  # Assuming piece '2' is the master brick
+        if goal_x is None:
+            return 0  # The puzzle is already solved if there's no goal
+
+        # Get master brick (piece 2) cells
+        master_cells = self.get_piece_cells(2)
         if not master_cells:
             return float('inf')  # No master brick found (shouldn't happen in a valid puzzle)
 
-        min_distance = float('inf')
-        for x, y in master_cells:
-            distance = abs(x - goal_x) + abs(y - goal_y)
-            min_distance = min(min_distance, distance)
+        # Centroid approach: calculate the center of the master brick
+        centroid_x = sum(x for x, _ in master_cells) / len(master_cells)
+        centroid_y = sum(y for _, y in master_cells) / len(master_cells)
 
-        return min_distance
+        # Calculate Manhattan distance from centroid to goal
+        distance = abs(centroid_x - goal_x) + abs(centroid_y - goal_y)
+
+        return distance
 
     def astar(self, filename):
         """Performs an A* search to solve the puzzle."""
@@ -317,21 +324,45 @@ class Sbp:
         self.load_board(filename)
         initial_state = self.clone_state()
 
-        # Priority queue: (total_cost, unique_counter, move_count, state, moves)
-        counter = 0  # Unique counter to break ties in the priority queue
-        queue = [(initial_state.manhattan_distance(), counter, 0, initial_state, [])]
-        visited = {initial_state.board_to_tuple(): 0}  # Track visited states and their costs
+        # Dictionary to store cost so far (g) for each state
+        g_score = {initial_state.board_to_tuple(): 0}
+
+        # Custom priority queue: list of (f_score, counter, state, moves)
+        # Using a counter as tiebreaker for states with equal f_score
+        counter = 0
+        pq = [(initial_state.manhattan_distance(), counter, initial_state, [])]
+        counter += 1
+
+        # Set of visited states (board tuple representation)
+        visited = set()
         nodes_explored = 0
 
-        while queue:
-            total_cost, _, move_count, current_state, moves = heapq.heappop(queue)
+        while pq:
+            # Find and remove the state with the minimum f_score
+            min_idx = 0
+            for i in range(1, len(pq)):
+                if pq[i][0] < pq[min_idx][0]:  # Compare f_scores
+                    min_idx = i
+                elif pq[i][0] == pq[min_idx][0] and pq[i][1] < pq[min_idx][1]:  # Tiebreaker using counter
+                    min_idx = i
+
+            # Pop the state with minimum f_score
+            _, _, current_state, moves = pq.pop(min_idx)
+            current_tuple = current_state.board_to_tuple()
+
+            # Skip if we've already processed this state
+            if current_tuple in visited:
+                continue
+
+            visited.add(current_tuple)
             nodes_explored += 1
 
+            # Check if puzzle is solved
             if current_state.is_done():
                 end_time = time.time()
                 elapsed_time = end_time - start_time
 
-                # Print the moves in the required format
+                # Print each move in the format (piece,direction)
                 for piece, direction in moves:
                     print(f"({piece},{direction})")
                 print()
@@ -346,23 +377,29 @@ class Sbp:
                 print(len(moves))
                 return
 
-            # Explore available moves
+            # Get current g score
+            current_g = g_score[current_tuple]
+
+            # Explore all available moves
             for piece, direction in current_state.available_moves():
                 new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
                 new_state.normalize()
-                new_board_tuple = new_state.board_to_tuple()
+                new_tuple = new_state.board_to_tuple()
 
-                # Calculate the new cost
-                new_move_count = move_count + 1
-                new_total_cost = new_move_count + new_state.manhattan_distance()
+                # Calculate new g score (cost so far + 1 for this move)
+                new_g = current_g + 1
 
-                # Add to queue if the state is new or has a lower cost
-                if new_board_tuple not in visited or new_move_count < visited[new_board_tuple]:
-                    visited[new_board_tuple] = new_move_count
-                    counter += 1  # Increment the unique counter
-                    heapq.heappush(queue,
-                                   (new_total_cost, counter, new_move_count, new_state, moves + [(piece, direction)]))
+                # If we haven't seen this state before OR found a better path
+                if new_tuple not in g_score or new_g < g_score[new_tuple]:
+                    g_score[new_tuple] = new_g
+
+                    # Calculate f score = g score + heuristic
+                    f_score = new_g + new_state.manhattan_distance()
+
+                    # Add to our custom priority queue
+                    pq.append((f_score, counter, new_state, moves + [(piece, direction)]))
+                    counter += 1
 
         print("No solution found")
         return
