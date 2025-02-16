@@ -58,22 +58,25 @@ class Sbp:
 
         for x, y in cells:
             new_x, new_y = x + dx, y + dy
-
-            # Check if the new position is within the board boundaries
+            # Added boundary check condition
             if not (0 <= new_x < self.width and 0 <= new_y < self.height):
-                return False
+                return False  # Out of bounds
 
-            target_cell = self.board[new_y][new_x]
+            target_cell = self.board[new_y][new_x]  # Check what's in the target cell
 
-            # Check if the target cell is empty or the goal (for the master brick)
-            if target_cell == 0 or (target_cell == -1 and piece == 2):
+            # The piece can move into an empty cell (0) or -1
+            if target_cell == 0:
                 continue
 
-            # Check if the target cell is a wall or another piece
-            if target_cell == 1 or (target_cell not in [0, -1] and (new_x, new_y) not in cells):
-                return False
+            # The master brick (2) can move into the goal (-1), no other pieces
+            if target_cell == -1 and piece == 2:
+                continue
 
-        return True
+            # If the target cell is another brick or boundary, prevent movement
+            if target_cell not in [0, -1] and (new_x, new_y) not in cells:
+                return False  # The move is blocked by another piece
+
+        return True  # If all checks pass, the move is valid
     def available_moves(self):
         """Gets all available moves."""
         moves = []
