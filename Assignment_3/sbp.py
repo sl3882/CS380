@@ -288,77 +288,69 @@ class Sbp:
                 return
         print("No solution found within reasonable depth")
 
-    def heuristic(self, state):
-        """Calculates the Manhattan distance between the master brick and the goal."""
-        master_cells = state.get_piece_cells(2)  # Get cells of the master brick
-        goal_cells = [(x, y) for y in range(state.height) for x in range(state.width) if state.board[y][x] == -1]
+    def manhattan_distance_to_goal(self):
+        """Calculates the Manhattan distance from the master brick to the goal."""
+        master_brick_cells = self.get_piece_cells(2)  # Master brick has ID 2
+        goal_cells = []
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.board[y][x] == -1:
+                    goal_cells.append((x, y))
 
-        if not goal_cells:
-            return 0  # No goal cells, no heuristic
+        # Check if the board is in invalid state. Return large number if invalid
+        if not master_brick_cells or not goal_cells:
+            return 1000
 
-        # Calculate the minimum Manhattan distance between the master brick and the goal
-        min_distance = float('inf')
-        for (x1, y1) in master_cells:
-            for (x2, y2) in goal_cells:
-                distance = abs(x1 - x2) + abs(y1 - y2)
-                if distance < min_distance:
-                    min_distance = distance
+        # The coordinates of the first cell of the master brick and the goal
+        x1, y1 = master_brick_cells[0]
+        x2, y2 = goal_cells[0]
 
-        return min_distance
+        return abs(x1 - x2) + abs(y1 - y2)
+
     def astar(self, filename):
-
+        """Performs A* search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
         initial_state = self.clone_state()
+        initial_heuristic = self.manhattan_distance_to_goal()
 
-        # Priority queue: (total_cost, move_count, state, moves)
-        queue = [(self.heuristic(initial_state), 0, initial_state, [])]
-        visited = {self.board_to_tuple(): 0}  # Track visited states and their costs
+        # Priority queue of (f_score, state, moves)
+        priority_queue = [(initial_heuristic, self, [])]
+        visited = {self.board_to_tuple()}
         nodes_explored = 0
 
-        while queue:
-            total_cost, move_count, current_state, moves = heapq.heappop(queue)
+        while priority_queue:
+            f_score, current_state, moves = heapq.heappop(priority_queue)
             nodes_explored += 1
 
             if current_state.is_done():
                 end_time = time.time()
                 elapsed_time = end_time - start_time
 
-                # Print the moves in the required format
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
+                for move in moves:
+                    print(move)
 
-                # Print the final state
                 current_state.print_board()
-                print()
-
-                # Print statistics
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
                 return
 
-            # Explore available moves
             for piece, direction in current_state.available_moves():
                 new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
                 new_state.normalize()
                 new_board_tuple = new_state.board_to_tuple()
 
-                # Calculate the new cost
-                new_move_count = move_count + 1
-                new_total_cost = new_move_count + self.heuristic(new_state)
-
-                # Add to queue if the state is new or has a lower cost
-                if new_board_tuple not in visited or new_move_count < visited[new_board_tuple]:
-                    visited[new_board_tuple] = new_move_count
-                    heapq.heappush(queue, (new_total_cost, new_move_count, new_state, moves + [(piece, direction)]))
+                if new_board_tuple not in visited:
+                    visited.add(new_board_tuple)
+                    heuristic = new_state.manhattan_distance_to_goal()
+                    g_score = len(moves) + 1  # Cost to reach new state
+                    f_score = g_score + heuristic
+                    heapq.heappush(priority_queue, (f_score, new_state, moves + [(piece, direction)]))
 
         print("No solution found")
         return
-
-
 
 def main():
     if len(sys.argv) < 3:
