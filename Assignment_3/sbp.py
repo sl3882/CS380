@@ -251,7 +251,7 @@ class Sbp:
                 if state.is_done():
                     nodes_explored += 1
                     self.print_solution(moves, state, nodes_explored, start_time)
-                    return
+                    return True
 
                 if depth >= depth_limit:
                     return False
