@@ -67,7 +67,27 @@ class Sbp:
                 moves.append((piece, "right"))
 
         return moves
+    def apply_move(self, piece, direction):
+        """Applies the given move to the board."""
+        directions = {'up': (-1, 0), 'down': (1, 0), 'left': (0, -1), 'right': (0, 1)}
+        dx, dy = directions[direction]
+        piece_positions = self.get_piece_positions()[piece]
 
+        # Move the piece
+        new_positions = [(r + dx, c + dy) for r, c in piece_positions]
+        for r, c in piece_positions:
+            self.board[r][c] = 0
+        for r, c in new_positions:
+            self.board[r][c] = piece
+
+    def apply_move_and_return_new_state(self, piece, direction):
+        """Returns a new state resulting from applying the move."""
+        new_state = Sbp()
+        new_state.width = self.width
+        new_state.height = self.height
+        new_state.board = self.clone_state()
+        new_state.apply_move(piece, direction)
+        return new_state
 def main():
     if len(sys.argv) < 3:
         print("Usage: python3 sbp.py <command> <filename> [args]")
@@ -88,6 +108,20 @@ def main():
         moves = puzzle.available_moves()
         for move in moves:
             print(f"({move[0]}, {move[1]})")
+
+    elif command == "applyMove":
+        if len(sys.argv) < 4:
+            print("Usage: python3 sbp.py applyMove <filename> <move>")
+            sys.exit(1)
+        move = sys.argv[3].strip("()").split(",")
+        piece = int(move[0])
+        direction = move[1]
+        puzzle.load_board(filename)
+        new_state = puzzle.apply_move_and_return_new_state(piece, direction)
+        new_state.print_board()
+
+
+
 
 
 
