@@ -243,6 +243,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 new_puzzle.board = temp_puzzle.clone_state()
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
+                new_puzzle.print_board()
 
 
                 if not any(new_puzzle.compare_board(state) for state in visited):
