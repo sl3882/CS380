@@ -1,5 +1,5 @@
-import copy
 import sys
+import copy
 
 class SlidingBrickPuzzle:
     def __init__(self):
@@ -24,7 +24,7 @@ class SlidingBrickPuzzle:
     def display_state(self):
         print(f"{self.width},{self.height},")
         for row in self.board:
-            print(','.join(map(str, row)))
+            print(','.join(map(str, row)) + ',')
 
     def clone_state(self):
         cloned_puzzle = SlidingBrickPuzzle()
@@ -33,26 +33,14 @@ class SlidingBrickPuzzle:
         cloned_puzzle.board = copy.deepcopy(self.board)
         return cloned_puzzle
 
-    def is_solved(self):
-        return not any(-1 in row for row in self.board)
-
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: python3 sbp.py <command> <filename> [args]")
-        sys.exit(1)
-
-    command = sys.argv[1]
-    filename = sys.argv[2]
-    puzzle = SlidingBrickPuzzle()
-
-    if command == "print":
+def main(command, filename=None):
+    if command == "print" and filename:
+        puzzle = SlidingBrickPuzzle()
         puzzle.load_state(filename)
         puzzle.display_state()
-    elif command == "done":
-        puzzle.load_state(filename)
-        print(puzzle.is_solved())
     else:
         print("Unknown command or missing filename")
 
 if __name__ == "__main__":
-    main()
+    args = sys.argv[1:]
+    main(*args)
