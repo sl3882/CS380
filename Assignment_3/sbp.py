@@ -196,9 +196,8 @@ def main():
         pass
     elif command == "bfs":
         puzzle.bfs()
-    else:
-        print(
-            f"Unknown command: {command}. Please use one of: print, done, availableMoves, applyMove, compare, norm, random, bfs")
 
+    else:
+        print(f"Unknown command: {command}")
 if __name__ == "__main__":
     main()
