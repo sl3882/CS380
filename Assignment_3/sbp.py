@@ -171,10 +171,12 @@ class Sbp:
                 nodes_explored += 1
                 elapsed_time = end_time - start_time
 
-                for move in moves:
-                    print(move)
+                for piece, direction in moves:
+                    print(f"({piece},{direction})")
+                print()
 
                 current_state.print_board()
+                print()
                 print(nodes_explored)
                 print(f"{elapsed_time:.2f}")
                 print(len(moves))
