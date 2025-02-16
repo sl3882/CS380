@@ -66,6 +66,8 @@ class Sbp:
 
             if target_cell == 0:
                 continue
+            if target_cell == 1:
+                return False
 
             if target_cell == -1 and piece != 2:
                 return False
