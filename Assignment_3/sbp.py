@@ -1,4 +1,5 @@
 import sys
+from random import random
 
 class Sbp:
     def __init__(self):
@@ -101,6 +102,34 @@ class Sbp:
                 return False
         return True
 
+    def normalize(self):  # Method to normalize the board
+        next_idx = 3  # Start with index 3 (1 and 2 are reserved)
+        for y in range(self.height):  # Iterate over rows
+            for x in range(self.width):  # Iterate over columns
+                if self.board[y][x] == next_idx:  # If cell matches next index
+                    next_idx += 1  # Increment next index
+                elif self.board[y][x] > next_idx:  # If cell is higher than next index
+                    # Swap indices
+                    old_idx = self.board[y][x]  # Store old index
+                    for i in range(self.height):  # Iterate over rows
+                        for j in range(self.width):  # Iterate over columns
+                            if self.board[i][j] == next_idx:  # If cell matches next index
+                                self.board[i][j] = old_idx  # Set to old index
+                            elif self.board[i][j] == old_idx:  # If cell matches old index
+                                self.board[i][j] = next_idx  # Set to next index
+                    next_idx += 1  # Increment next index
+
+    def random_walk(self, N):  # Method to perform a random walk
+        history = []  # Initialize empty list for move history
+        for _ in range(N):  # Repeat N times
+            moves = self.available_moves()  # Get available moves
+            if not moves or self.is_done():  # If no moves or puzzle is solved
+                break  # Exit loop
+            piece, direction = random.choice(moves)  # Choose a random move
+            self.apply_move(piece, direction)  # Apply the move
+            self.normalize()  # Normalize the board
+            history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
+        return history  # Return move history
 
 def main():
     if len(sys.argv) < 3:
@@ -141,6 +170,26 @@ def main():
         other_puzzle = Sbp()
         other_puzzle.load_board(filename2)
         print(puzzle.compare_states(other_puzzle))
+
+    elif command == "norm":
+        puzzle.load_board(filename)
+        puzzle.normalize()
+        puzzle.print_board()
+
+
+
+    elif command == "random":  # If command is "random"
+        if len(sys.argv) != 4:  # Check if correct number of arguments
+            print("Usage: python3 sbp.py random <filename> <N>")  # Print usage instructions
+            sys.exit(1)  # Exit with error code 1
+        puzzle.load_board(filename)  # Load board from file
+        N = int(sys.argv[3])  # Get number of random moves
+        puzzle.print_board()  # Print initial board
+        for (piece, direction), state in puzzle.random_walk(N):  # Perform random walk
+            print(f"({piece}, {direction})")  # Print each move
+            puzzle.board = state  # Update board state
+            puzzle.print_board()  # Print updated board
+
 
 
 
