@@ -190,26 +190,31 @@ class Sbp:
         print("No solution found")
         return
 
-    def dfs(self, filename, depth_limit=None):
+    def dfs(self, filename):
+        """Performs a depth-first search to solve the puzzle."""
         start_time = time.time()
         self.load_board(filename)
 
-        stack = [(self, [])]
-        visited = {self.board_to_tuple()}
-        nodes_explored = 1
+        stack = [(self, [])]  # Stack of (state, moves)
+        visited = set()  # Set of visited states
+        nodes_explored = 0
 
         while stack:
             current_state, moves = stack.pop()
+            current_tuple = current_state.board_to_tuple()
+
+            # Skip if this state has already been fully explored
+            if current_tuple in visited:
+                continue
+
+            visited.add(current_tuple)
             nodes_explored += 1
 
             if current_state.is_done():
-                nodes_explored += 1
                 self.print_solution(moves, current_state, nodes_explored, start_time)
                 return
 
-            if depth_limit is not None and len(moves) >= depth_limit:
-                continue  # skip expanding if the limit is reached
-
+            # Explore available moves in reverse order (to prioritize certain moves)
             for piece, direction in reversed(current_state.available_moves()):
                 new_state = current_state.clone_state()
                 new_state.apply_move(piece, direction)
@@ -217,7 +222,6 @@ class Sbp:
                 new_board_tuple = new_state.board_to_tuple()
 
                 if new_board_tuple not in visited:
-                    visited.add(new_board_tuple)
                     stack.append((new_state, moves + [(piece, direction)]))
 
         print("No solution found")
