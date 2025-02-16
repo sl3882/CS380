@@ -303,6 +303,8 @@ def main():
             puzzle.print_board()
     elif command == "bfs":
         puzzle.bfs(filename)
+    elif command == "dfs":
+        puzzle.bfs(filename)
     else:
         print(f"Unknown command: {command}")
 
