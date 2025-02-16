@@ -39,21 +39,7 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     cells.append((x, y))  # Add coordinates to cells list
         return cells  # Return list of coordinates
 
-    # def can_move(self, piece, direction):  # Method to check if a move is valid
-    #     cells = self.get_piece_cells(piece)  # Get coordinates of the piece
-    #     dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
-    #
-    #     for x, y in cells:  # Iterate over piece cells
-    #         new_x, new_y = x + dx, y + dy  # Calculate new position
-    #         # Allow piece 2 to move into the empty space (-1)
-    #         if self.board[new_y][new_x] == -1 and piece != 2:
-    #             return False  # Return False if a piece other than 2 is trying to move into empty space (-1)
-    #         if not (0 <= new_x < self.width and 0 <= new_y < self.height):  # Check if new position is within bounds
-    #             return False  # Return False if out of bounds
-    #         if self.board[new_y][new_x] not in [0, -1] and (
-    #                 new_x, new_y) not in cells:  # Check if new position is occupied by another piece
-    #             return False  # Return False if occupied by another piece
-    #     return True  # Return True if move is valid
+
     def can_move(self, piece, direction):
         cells = self.get_piece_cells(piece)  # Get all (x, y) positions occupied by the piece
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
@@ -92,26 +78,36 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                     moves.append((piece, direction))  # Add valid move to list
         return moves  # Return list of available moves
 
-    # def apply_move(self, piece, direction):  # Method to apply a move
-    #     cells = self.get_piece_cells(piece)  # Get coordinates of the piece
-    #     dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]  # Get direction vector
+
+    # def apply_move(self, piece, direction):
+    #     cells = self.get_piece_cells(piece)
+    #     dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
     #
-    #     for x, y in cells:  # Iterate over piece cells
-    #         self.board[y][x] = 0 if self.board[y][x] != -1 else -1  # Clear old position
+    #     # Clear old positions
+    #     for x, y in cells:
+    #         self.board[y][x] = 0 if self.board[y][x] != -1 else -1
     #
-    #     for x, y in cells:  # Iterate over piece cells
-    #         self.board[y + dy][x + dx] = piece  # Set new position
+    #     # Set new positions
+    #     for x, y in cells:
+    #         self.board[y + dy][x + dx] = piece
+
     def apply_move(self, piece, direction):
         cells = self.get_piece_cells(piece)
         dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
 
-        # Clear old positions
+        # Store original board state to preserve goal cells
+        old_positions = {(x, y): self.board[y][x] for x, y in cells}
+
+        # Clear old positions, ensuring goal cells remain
         for x, y in cells:
-            self.board[y][x] = 0 if self.board[y][x] != -1 else -1
+            if old_positions[(x, y)] == -1:
+                continue  # Keep goal cell unchanged
+            self.board[y][x] = 0
 
         # Set new positions
         for x, y in cells:
             self.board[y + dy][x + dx] = piece
+
     def compare_board(self, other_board):  # Method to compare this board with another
         if len(self.board) != len(other_board) or len(self.board[0]) != len(
                 other_board[0]):  # Check if dimensions match
@@ -243,24 +239,12 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 new_puzzle.board = temp_puzzle.clone_state()
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
-                new_puzzle.print_board()
-
 
                 if not any(new_puzzle.compare_board(state) for state in visited):
                     visited.append(new_puzzle.board)
                     new_moves = moves_list + [(piece, direction)]
                     stack.append((new_moves, new_puzzle.board))
-                # # Check if we've seen this state before
-                # is_new_state = True
-                # for visited_state in visited:
-                #     if new_puzzle.compare_board(visited_state):
-                #         is_new_state = False
-                #         break
-                #
-                # if is_new_state:
-                #     visited.append(new_puzzle.board)
-                #     new_moves = moves_list + [(piece, direction)]
-                #     stack.append((new_moves, new_puzzle.board))
+
 
         return False
     def print_board(self):  # Method to print the board
