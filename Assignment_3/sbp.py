@@ -240,60 +240,46 @@ class Sbp:
         print("No solution found")
         return
 
-
-
     def ids(self, filename):
-        """Performs an iterative deepening search to solve the puzzle."""
+        """Performs iterative deepening search to solve the puzzle."""
         start_time = time.time()
-        self.load_board(filename)
-        initial_state = self.clone_state()
         nodes_explored = 0
+        for depth_limit in range(1, 50):  # Increase depth limit iteratively
+            visited = {self.board_to_tuple()}  # Reset visited states for each depth
+            def dls(state, moves, depth):
+                nonlocal nodes_explored
 
-        def dls(state, depth):
-            nonlocal nodes_explored
-            nodes_explored += 1
+                nodes_explored += 1
+                if state.is_done():
+                    end_time = time.time()
+                    elapsed_time = end_time - start_time
+                    for move in moves:
+                        print(move)
+                    state.print_board()
+                    print(nodes_explored)
+                    print(f"{elapsed_time:.2f}")
+                    print(len(moves))
+                    return True
 
-            if state.is_done():
-                return True, []
+                if depth >= depth_limit:
+                    return False
 
-            if depth == 0:
-                return False, []
+                for piece, direction in state.available_moves():
+                    new_state = state.clone_state()
+                    new_state.apply_move(piece, direction)
+                    new_state.normalize()
+                    new_board_tuple = new_state.board_to_tuple()
 
-            for piece, direction in state.available_moves():
-                new_state = state.clone_state()
-                new_state.apply_move(piece, direction)
-                new_state.normalize()
-
-                found, moves = dls(new_state, depth - 1)
-                if found:
-                    return True, [(piece, direction)] + moves
-
-            return False, []
-
-        depth = 0
-        while True:
-            found, moves = dls(self.clone_state(), depth)
-            if found:
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-
-                for piece, direction in moves:
-                    print(f"({piece},{direction})")
-                print()
-
-                self.load_board(filename)
-                for piece, direction in moves:
-                    self.apply_move(piece, direction)
-                self.print_board()
-                print()
-
-                print(nodes_explored)
-                print(f"{elapsed_time:.2f}")
-                print(len(moves))
+                    if new_board_tuple not in visited:
+                        visited.add(new_board_tuple)
+                        if dls(new_state, moves + [(piece, direction)], depth + 1):
+                            return True
+                        visited.remove(new_board_tuple)
+                return False
+            self.load_board(filename)
+            if dls(self, [], 0):
                 return
-
-            depth += 1
-
+        print("No solution found within reasonable depth")
 
 
 
