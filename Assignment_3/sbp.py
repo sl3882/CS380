@@ -242,57 +242,57 @@ class Sbp:
 
 
 
-def ids(self, filename):
-    """Performs an iterative deepening search to solve the puzzle."""
-    start_time = time.time()
-    self.load_board(filename)
-    initial_state = self.clone_state()
-    nodes_explored = 0
+    def ids(self, filename):
+        """Performs an iterative deepening search to solve the puzzle."""
+        start_time = time.time()
+        self.load_board(filename)
+        initial_state = self.clone_state()
+        nodes_explored = 0
 
-    def dls(state, depth):
-        nonlocal nodes_explored
-        nodes_explored += 1
+        def dls(state, depth):
+            nonlocal nodes_explored
+            nodes_explored += 1
 
-        if state.is_done():
-            return True, []
+            if state.is_done():
+                return True, []
 
-        if depth == 0:
+            if depth == 0:
+                return False, []
+
+            for piece, direction in state.available_moves():
+                new_state = state.clone_state()
+                new_state.apply_move(piece, direction)
+                new_state.normalize()
+
+                found, moves = dls(new_state, depth - 1)
+                if found:
+                    return True, [(piece, direction)] + moves
+
             return False, []
 
-        for piece, direction in state.available_moves():
-            new_state = state.clone_state()
-            new_state.apply_move(piece, direction)
-            new_state.normalize()
-
-            found, moves = dls(new_state, depth - 1)
+        depth = 0
+        while True:
+            found, moves = dls(self.clone_state(), depth)
             if found:
-                return True, [(piece, direction)] + moves
+                end_time = time.time()
+                elapsed_time = end_time - start_time
 
-        return False, []
+                for piece, direction in moves:
+                    print(f"({piece},{direction})")
+                print()
 
-    depth = 0
-    while True:
-        found, moves = dls(self.clone_state(), depth)
-        if found:
-            end_time = time.time()
-            elapsed_time = end_time - start_time
+                self.load_board(filename)
+                for piece, direction in moves:
+                    self.apply_move(piece, direction)
+                self.print_board()
+                print()
 
-            for piece, direction in moves:
-                print(f"({piece},{direction})")
-            print()
+                print(nodes_explored)
+                print(f"{elapsed_time:.2f}")
+                print(len(moves))
+                return
 
-            self.load_board(filename)
-            for piece, direction in moves:
-                self.apply_move(piece, direction)
-            self.print_board()
-            print()
-
-            print(nodes_explored)
-            print(f"{elapsed_time:.2f}")
-            print(len(moves))
-            return
-
-        depth += 1
+            depth += 1
 
 
 
