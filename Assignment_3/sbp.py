@@ -100,7 +100,7 @@ class Sbp:
         for x, y in cells:
             self.board[y + dy][x + dx] = piece
 
-        self.normalize()
+        # self.normalize()
 
     def print_board(self):
         print(f"{self.width},{self.height},")
@@ -401,6 +401,7 @@ def main():
             puzzle.print_board()
     elif command == "bfs":
         puzzle.bfs(filename)
+        puzzle.normalize()
     elif command == "dfs":
         puzzle.dfs(filename)
 
