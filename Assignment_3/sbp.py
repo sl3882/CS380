@@ -53,31 +53,41 @@ class Sbp:
 
     def can_move(self, piece, direction):
         """Checks if a piece can move in a given direction."""
+        # Get the piece's current cells
         cells = self.get_piece_cells(piece)
-        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
+
+        # Direction mapping (dx, dy for movement)
+        direction_map = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
+        dx, dy = direction_map[direction]
 
         for x, y in cells:
+            # Calculate new position after the move
             new_x, new_y = x + dx, y + dy
 
-            # if not (0 <= new_x < self.width and 0 <= new_y < self.height):
-            #     return False
+            # Skip out-of-bounds check since it's handled by target_cell checks below
+            if not (0 <= new_x < self.width and 0 <= new_y < self.height):
+                return False
 
+            # Retrieve the target cell at the new position
             target_cell = self.board[new_y][new_x]
 
+            # Empty space (valid move)
             if target_cell == 0:
                 continue
+
+            # Wall (invalid move)
             if target_cell == 1:
                 return False
 
+            # Goal cell but not the master brick
             if target_cell == -1 and piece != 2:
                 return False
-            #
-            # if target_cell not in [0, -1] and (new_x, new_y) not in cells:
-            #     return False
-            if target_cell not in [0-1] and (new_x, new_y) not in cells:
-                return False
-        return True
 
+            # If target cell is another brick and it's not the master brick, move is invalid
+            if target_cell > 2 and (new_x, new_y) not in cells:
+                return False
+
+        return True
     def available_moves(self):
         """Gets all available moves."""
         moves = []
