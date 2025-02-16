@@ -73,7 +73,7 @@ class Sbp:
                 continue
 
             # If the target cell is another brick or boundary, prevent movement
-            if target_cell not in [0, -1] :
+            if target_cell not in [0, -1] and (new_x, new_y) not in cells:
                 return False  # The move is blocked by another piece
 
         return True  # If all checks pass, the move is valid
