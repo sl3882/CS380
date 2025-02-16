@@ -263,6 +263,7 @@ def main():
 
     elif command == "bfs":
         puzzle.load_board(filename)
+        puzzle.normalize()
         puzzle.bfs()
 
 
