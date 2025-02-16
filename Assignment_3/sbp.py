@@ -245,12 +245,12 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
     #                 new_moves = moves_list + [(piece, direction)]
     #                 stack.append((new_moves, new_puzzle.board))
     # return False
+
     def dfs(self):
         start_time = time.time()
         initial_state = self.clone_state()
         stack = [([], initial_state)]
-        visited = set()  # Use a set for faster lookups
-        visited.add(tuple(map(tuple, initial_state)))  # Add initial state to visited
+        visited = [initial_state]
         nodes_explored = 1
 
         while stack:
@@ -282,15 +282,15 @@ class Sbp:  # Define the Sbp (Sliding Block Puzzle) class
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                new_state = tuple(map(tuple, new_puzzle.board))
-                if new_state not in visited:
-                    visited.add(new_state)
+                if not any(new_puzzle.compare_board(state) for state in visited):
+                    visited.append(new_puzzle.board)
                     new_moves = moves_list + [(piece, direction)]
                     stack.append((new_moves, new_puzzle.board))
-
-
+                else:
+                    print(f"State already visited: {new_puzzle.board}")
 
         return False
+
     def print_board(self):  # Method to print the board
         print(f"{self.width},{self.height},")  # Print width and height
         for row in self.board:  # Iterate over rows
