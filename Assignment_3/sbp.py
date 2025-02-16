@@ -1,6 +1,7 @@
 import sys
 from random import choice
-
+import time
+from collections import deque
 class Sbp:
     def __init__(self):
         self.width = 0
@@ -132,6 +133,60 @@ class Sbp:
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
 
+
+    def bfs(self):
+        """Breadth-First Search to solve the puzzle."""
+        start_time = time.time()
+        start_state = self.clone_state()
+        queue = deque([(start_state, [], 0)])  # (state, path, depth)
+        visited = set()
+        visited.add(self.state_to_tuple(start_state))
+        nodes_explored = 0
+
+        while queue:
+            current_state, path, depth = queue.popleft()
+            self.board = current_state
+            nodes_explored += 1
+
+            if self.is_done():
+                end_time = time.time()
+                for move in path:
+                    print(f"({move[0]},{move[1]})")
+                self.print_board()
+                print(nodes_explored)
+                print("{:.2f}".format(end_time - start_time))
+                print(len(path))
+                return
+
+            for piece, direction in self.available_moves():
+                new_state = self.apply_move_and_return_new_state(piece, direction)
+                state_tuple = self.state_to_tuple(new_state.board)
+                if state_tuple not in visited:
+                    visited.add(state_tuple)
+                    queue.append((new_state.board, path + [(piece, direction)], depth + 1))
+
+        print("No solution found.")
+        end_time = time.time()
+        print(nodes_explored)
+        print("{:.2f}".format(end_time - start_time))
+
+    def state_to_tuple(self, state):
+        """Converts the board state to a tuple for hashing."""
+        return tuple(tuple(row) for row in state)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: python3 sbp.py <command> <filename> [args]")
@@ -186,6 +241,15 @@ def main():
             print(f"({piece}, {direction})")  # Print each move
             puzzle.board = state  # Update board state
             puzzle.print_board()  # Print updated board
+
+
+    elif command == "bfs":
+        puzzle.load_board(filename)
+        puzzle.bfs()
+
+
+
+
     else:
         print(f"Unknown command: {command}")
 
