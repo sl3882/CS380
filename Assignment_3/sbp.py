@@ -3,6 +3,7 @@ from random import choice
 import time
 from collections import deque
 import copy
+
 class Sbp:
     def __init__(self):
         self.width = 0
@@ -97,7 +98,7 @@ class Sbp:
         new_state.apply_move(piece, direction)
         return new_state
 
-    def compare_state(self, other_board):  # Method to compare this board with another
+    def compare_board(self, other_board):  # Method to compare this board with another
         if len(self.board) != len(other_board) or len(self.board[0]) != len(
                 other_board[0]):  # Check if dimensions match
             return False  # Return False if dimensions don't match
@@ -134,17 +135,12 @@ class Sbp:
             history.append(((piece, direction), self.clone_state()))  # Add move and board state to history
         return history  # Return move history
 
-    def state_to_string(self):
-        """Convert board state to string for efficient comparison"""
-        return ','.join(','.join(str(x) for x in row) for row in self.board)
-
     def bfs(self):
         start_time = time.time()
         initial_state = self.clone_state()
         queue = deque([([], initial_state)])
-        # Use set of strings instead of list of states
-        visited = {self.state_to_string()}
-        nodes_explored = 0
+        visited = [initial_state]
+        nodes_explored = 1
 
         while queue:
             moves_list, current_state = queue.popleft()
@@ -156,15 +152,16 @@ class Sbp:
             temp_puzzle.board = current_state
 
             if temp_puzzle.is_done():
+                nodes_explored += 1
                 end_time = time.time()
-                # Print moves without empty lines
+                # Print the moves
                 for piece, direction in moves_list:
                     print(f"({piece},{direction})")
+                print()
 
-                # Print final state
                 temp_puzzle.print_board()
-
-                # Print statistics without empty lines
+                print()
+                # Print statistics
                 print(nodes_explored)
                 print(f"{end_time - start_time:.2f}")
                 print(len(moves_list))
@@ -172,37 +169,29 @@ class Sbp:
 
             # Try each possible move
             for piece, direction in temp_puzzle.available_moves():
+                # Create new puzzle state
                 new_puzzle = Sbp()
                 new_puzzle.width = self.width
                 new_puzzle.height = self.height
-                new_puzzle.board = temp_puzzle.clone_state()
+                new_puzzle.board = [row[:] for row in current_state]
+
+                # Apply the move
                 new_puzzle.apply_move(piece, direction)
                 new_puzzle.normalize()
 
-                # Use string comparison instead of board comparison
-                state_str = new_puzzle.state_to_string()
-                if state_str not in visited:
-                    visited.add(state_str)
+                # Check if we've seen this state before
+                is_new_state = True
+                for visited_state in visited:
+                    if new_puzzle.compare_board(visited_state):
+                        is_new_state = False
+                        break
+
+                if is_new_state:
+                    visited.append(new_puzzle.board)
                     new_moves = moves_list + [(piece, direction)]
                     queue.append((new_moves, new_puzzle.board))
 
-        # No solution found
-        end_time = time.time()
-        print(nodes_explored)
-        print(f"{end_time - start_time:.2f}")
-        print(0)
         return False
-
-
-
-
-
-
-
-
-
-
-
 
 def main():
     if len(sys.argv) < 3:
@@ -241,7 +230,7 @@ def main():
         puzzle2 = Sbp()  # Create second Sbp instance
         puzzle.load_board(filename)  # Load first board
         puzzle2.load_board(sys.argv[3])  # Load second board
-        print(puzzle.compare_state(puzzle2.board))  # Print comparison result
+        print(puzzle.compare_board(puzzle2.board))  # Print comparison result
     elif command == "norm":
         puzzle.load_board(filename)
         puzzle.normalize()
