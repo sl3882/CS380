@@ -48,29 +48,40 @@ class Sbp:
         for y in range(self.height):
             for x in range(self.width):
                 if self.board[y][x] == piece:
-                    cells.append((x, y))
+                    # Return (row, col) to match board[row][col] access
+                    cells.append((y, x))
         return cells
 
     def can_move(self, piece, direction):
         """Checks if a piece can move in a given direction."""
         cells = self.get_piece_cells(piece)
-        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[direction]
+        # Map for row,col changes (not x,y)
+        dy, dx = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}[direction]
 
-        for x, y in cells:
-            new_x, new_y = x + dx, y + dy
+        # Get piece dimensions
+        rows = [y for y, x in cells]
+        cols = [x for y, x in cells]
+        min_row, max_row = min(rows), max(rows)
+        min_col, max_col = min(cols), max(cols)
 
-            if not (0 <= new_x < self.width and 0 <= new_y < self.height):
-                return False
+        # Check boundaries first
+        if (direction == "up" and min_row <= 0) or \
+                (direction == "down" and max_row >= self.height - 1) or \
+                (direction == "left" and min_col <= 0) or \
+                (direction == "right" and max_col >= self.width - 1):
+            return False
 
-            target_cell = self.board[new_y][new_x]
+        # Check each cell the piece would move to
+        for y, x in cells:
+            new_y, new_x = y + dy, x + dx
+            target = self.board[new_y][new_x]
 
-            if target_cell == 0:
+            # Skip if target is part of the same piece
+            if (new_y, new_x) in cells:
                 continue
 
-            if target_cell == -1 and piece != 2:
-                return False
-
-            if target_cell not in [0, -1] and (new_x, new_y) not in cells:
+            # Cell must be empty (0) or for piece 2 can be target (-1)
+            if target != 0 and (piece != 2 or target != -1):
                 return False
 
         return True
@@ -78,9 +89,15 @@ class Sbp:
     def available_moves(self):
         """Gets all available moves."""
         moves = []
-        pieces = sorted(set(val for row in self.board for val in row if val >= 2))
-        directions = ["up", "down", "left", "right"]
+        # Only consider pieces 2 and higher (not walls)
+        pieces = set()
+        for row in self.board:
+            for val in row:
+                if val >= 2:
+                    pieces.add(val)
+        pieces = sorted(pieces)
 
+        directions = ["up", "down", "left", "right"]
         for piece in pieces:
             for direction in directions:
                 if self.can_move(piece, direction):
