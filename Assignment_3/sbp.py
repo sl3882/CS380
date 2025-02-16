@@ -32,7 +32,24 @@ class Sbp:
         print(f"{self.width},{self.height},")
         for row in self.board:
             print(",".join(map(str, row)) + ",")
-
+    def available_moves(self):
+        moves = []
+        directions = {'up': (-1, 0), 'down': (1, 0), 'left': (0, -1), 'right': (0, 1)}
+        pieces = set()
+        for row in self.board:
+            for cell in row:
+                if cell > 2:
+                    pieces.add(cell)
+        for piece in pieces:
+            for direction, (dx, dy) in directions.items():
+                for i in range(self.height):
+                    for j in range(self.width):
+                        if self.board[i][j] == piece:
+                            ni, nj = i + dx, j + dy
+                            if 0 <= ni < self.height and 0 <= nj < self.width and self.board[ni][nj] == 0:
+                                moves.append((piece, direction))
+                                break
+        return moves
 def main():
     if len(sys.argv) < 3:
         print("Usage: python3 sbp.py <command> <filename> [args]")
@@ -48,6 +65,16 @@ def main():
     elif command == "done":
         puzzle.load_board(filename)
         print(puzzle.is_done())
+    elif command == "availableMoves":
+        puzzle.load_board(filename)
+        moves = puzzle.available_moves()
+        for move in moves:
+            print(f"({move[0]}, {move[1]})")
+
+
+
+
+
     else:
         print(f"Unknown command: {command}")
 
