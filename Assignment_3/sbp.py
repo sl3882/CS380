@@ -242,7 +242,57 @@ class Sbp:
 
 
 
+def ids(self, filename):
+    """Performs an iterative deepening search to solve the puzzle."""
+    start_time = time.time()
+    self.load_board(filename)
+    depth_limit = 0
+    nodes_explored = 0
 
+    while True:
+        result = self.depth_limited_dfs(self, [], depth_limit, start_time, nodes_explored)
+        if result is not None:
+            return result
+        depth_limit += 1
+
+def depth_limited_dfs(self, state, moves, depth_limit, start_time, nodes_explored):
+    """Performs a depth-limited DFS."""
+    nodes_explored += 1
+
+    if state.is_done():
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+
+        # Print the moves in the required format
+        for piece, direction in moves:
+            print(f"({piece},{direction})")
+        print()
+
+        # Print the final state
+        state.print_board()
+        print()
+
+        # Print statistics
+        print(nodes_explored)
+        print(f"{elapsed_time:.2f}")
+        print(len(moves))
+        return moves
+
+    if depth_limit <= 0:
+        return None
+
+    # Explore available moves
+    for piece, direction in state.available_moves():
+        new_state = state.clone_state()
+        new_state.apply_move(piece, direction)
+        new_state.normalize()
+        new_board_tuple = new_state.board_to_tuple()
+
+        result = self.depth_limited_dfs(new_state, moves + [(piece, direction)], depth_limit - 1, start_time, nodes_explored)
+        if result is not None:
+            return result
+
+    return None
 
 
 
