@@ -51,8 +51,7 @@ class MinimaxAgent(game.Player):
     def minimax(self, state, depth, maximizing_player):
 
         if depth == 0 or state.game_over():
-            score = state.score()
-            return score
+            return state.score()
 
         if maximizing_player:
             best_value = float('-inf')
@@ -66,6 +65,45 @@ class MinimaxAgent(game.Player):
                 next_state = state.applyMoveCloning(move)
                 best_value = min(best_value, self.minimax(next_state, depth - 1, True))
             return best_value
-#
-# class AlphaBeta(game.Player):
-#     pass
+class AlphaBeta(game.Player):
+    def __init__(self, depth):
+        super().__init__()
+        self.depth = depth
+
+    def choose_move(self, state):
+        best_move = None
+        best_value = float('-inf')
+        alpha = float('-inf')
+        beta = float('inf')
+
+        for move in state.generateMoves():
+            next_state = state.applyMoveCloning(move)
+            value = self.alphabeta(next_state, self.depth - 1, False, alpha, beta)
+            if value > best_value:
+                best_value = value
+                best_move = move
+            alpha = max(alpha, best_value)
+        return best_move
+
+    def alphabeta(self, state, depth, maximizing_player, alpha, beta):
+        if depth == 0 or state.game_over():
+            return state.score()
+
+        if maximizing_player:
+            best_value = float('-inf')
+            for move in state.generateMoves():
+                next_state = state.applyMoveCloning(move)
+                best_value = max(best_value, self.alphabeta(next_state, depth - 1, False, alpha, beta))
+                alpha = max(alpha, best_value)
+                if beta <= alpha:
+                    break
+            return best_value
+        else:
+            best_value = float('inf')
+            for move in state.generateMoves():
+                next_state = state.applyMoveCloning(move)
+                best_value = min(best_value, self.alphabeta(next_state, depth - 1, True, alpha, beta))
+                beta = min(beta, best_value)
+                if beta <= alpha:
+                    break
+            return best_value
