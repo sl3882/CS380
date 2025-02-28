@@ -38,7 +38,6 @@ class MinimaxAgent(game.Player):
     def choose_move(self, state):
         # Generate the list of moves
 
-
         best_move = None
         best_value = float('-inf')
 
@@ -69,6 +68,7 @@ class MinimaxAgent(game.Player):
                 next_state = state.applyMoveCloning(move)
                 best_value = min(best_value, self.minimax(next_state, depth - 1, True))
             return best_value
+
 class AlphaBeta(game.Player):
     def __init__(self, depth):
         super().__init__()
@@ -112,9 +112,7 @@ class AlphaBeta(game.Player):
                     break
             return best_value
 
-
-
-class sl3882 (game.Player):
+class sl3882(game.Player):
     def __init__(self, time_limit_ms):
         super().__init__()
         self.time_limit_ms = time_limit_ms
@@ -171,7 +169,8 @@ class sl3882 (game.Player):
                 if (time.time() - start_time) > time_limit_s:
                     raise TimeoutError
                 next_state = state.applyMoveCloning(move)
-                best_value = max(best_value, self.alphabeta(next_state, depth - 1, False, alpha, beta, start_time, time_limit_s))
+                best_value = max(best_value,
+                                 self.alphabeta(next_state, depth - 1, False, alpha, beta, start_time, time_limit_s))
                 alpha = max(alpha, best_value)
                 if beta <= alpha:
                     break
@@ -182,7 +181,8 @@ class sl3882 (game.Player):
                 if (time.time() - start_time) > time_limit_s:
                     raise TimeoutError
                 next_state = state.applyMoveCloning(move)
-                best_value = min(best_value, self.alphabeta(next_state, depth - 1, True, alpha, beta, start_time, time_limit_s))
+                best_value = min(best_value,
+                                 self.alphabeta(next_state, depth - 1, True, alpha, beta, start_time, time_limit_s))
                 beta = min(beta, best_value)
                 if beta <= alpha:
                     break
