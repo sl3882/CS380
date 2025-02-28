@@ -24,7 +24,11 @@ class RandomAgent(game.Player):
     def choose_move(self, state):
         # generate the list of moves:
         moves = state.generateMoves()
-        return random.choice(moves)
+
+        if moves:  # Check if the list is not empty
+            return random.choice(moves)
+        else:
+            return None  # Or return a pass move.
 
 class MinimaxAgent(game.Player):
     def __init__(self, depth):
