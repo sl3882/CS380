@@ -18,12 +18,18 @@ class HumanPlayer(game.Player):
         return moves[int(response)]
 
 class RandomAgent(game.Player):
-    pass
+    def __init__(self):
+        super().__init__()
+
+    def choose_move(self, state):
+        # generate the list of moves:
+        moves = state.generateMoves()
+        return random.choice(moves)
 
 
 class MinimaxAgent(game.Player):
     pass
-
-
-class AlphaBeta(game.Player):
-    pass
+#
+#
+# class AlphaBeta(game.Player):
+#     pass
