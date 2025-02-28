@@ -3,7 +3,7 @@ import othello
 import game
 import sys
 
-def create_player(arg,  depht_or_time):
+def create_player(arg, depht_or_time):
     if arg == 'human':
         return agent.HumanPlayer()
     elif arg == 'random':
@@ -13,7 +13,7 @@ def create_player(arg,  depht_or_time):
     elif arg == 'alphabeta':
         return agent.AlphaBeta(depht_or_time)
     elif arg == 'extra':
-        return agent.sl3882(depht_or_time)
+        return agent.extra(depht_or_time)
 
     else:
         agent.RandomAgent()
@@ -30,9 +30,8 @@ if __name__ == '__main__':
         agent1 = sys.argv[1]
         agent2 = sys.argv[2]
         depht_or_time = 3
-    if len(sys.argv) == 4 : 
-        depht_or_time = int(sys.argv[3])        
-
+    if len(sys.argv) == 4:
+        depht_or_time = int(sys.argv[3])
 
     player1 = create_player(get_arg(1), depht_or_time)
     player2 = create_player(get_arg(2), depht_or_time)
@@ -43,5 +42,3 @@ if __name__ == '__main__':
     game = game.Game(initial_state, player1, player2)
 
     game.play()
-
-    
