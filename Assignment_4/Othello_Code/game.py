@@ -5,7 +5,13 @@ import othello
 class Player:
 
     def choose_move(self, state):
-        raise NotImplementedError
+        # generate the list of moves:
+        moves = state.generateMoves()
+
+        for i, action in enumerate(moves):
+            print('{}: {}'.format(i, action))
+        response = input('Please choose a move: ')
+        return moves[int(response)]
 
 
 class Game:
