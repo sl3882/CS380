@@ -67,7 +67,7 @@ class MinimaxAgent(game.Player):
             # Get the score from the perspective of the original player
             score = state.score()
             # Adjust score based on who the original player is (PLAYER1 wants positive, PLAYER2 wants negative)
-            return score if original_player == state.nextPlayerMove else -score
+            return score if original_player == state.nextPlayerToMove else -score
 
         # Generate possible moves
         moves = state.generateMoves()
