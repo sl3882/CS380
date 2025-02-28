@@ -12,8 +12,9 @@ def create_player(arg,  depht_or_time):
         return agent.MinimaxAgent(depht_or_time)
     elif arg == 'alphabeta':
         return agent.AlphaBeta(depht_or_time)
-    elif arg == 'extra':
-        return agent.extra(depht_or_time)
+    elif arg == 'sl3882':
+        return agent.sl3882(depht_or_time)
+
     else:
         agent.RandomAgent()
 
