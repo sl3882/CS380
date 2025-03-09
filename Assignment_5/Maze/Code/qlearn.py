@@ -139,31 +139,14 @@ class QTable:
         #
         state = self.env.random_state()
         while not state.at_end():
-            # Print current state
             print(state)
-
-            # Get legal actions from current state
             legal_actions = state.legal_actions(self.actions)
-
-            # Choose a random action from legal actions
             action = random.choice(legal_actions)
-
-            # Clone the state to remember where we were
             prev_state = state.clone()
-
-            # Execute the chosen action, moving to new state
             state.execute(action)
-
-            # Get the reward from the new state
             reward = state.reward()
-
-            # Calculate the maximum Q-value for the next state
             max_next_q = max(self.get_q_row(state)) if not state.at_end() else 0
-
-            # Get the current Q-value for the state-action pair
             current_q = self.get_q(prev_state, action)
-
-            # Update the Q-value using the Q-learning formula
             # Q(S,A) = (1-α)Q(S,A) + α[R + γ*max_a'Q(S',a')]
             new_q = (1 - alpha) * current_q + alpha * (reward + gamma * max_next_q)
 
@@ -172,36 +155,41 @@ class QTable:
 
             # Print the final state
         print(state)
-        print("Episode completed!")
-
-
-
-
 
 
 
 
     def learn(self, episodes, alpha=.10, gamma=.90):
         for i in range(episodes):
-            print(f"Episode {i + 1}:")
             self.learn_episode(alpha, gamma)
-            print()
 
     def __str__(self):
-        s = ""
-        for y in range(self.env.y_size):
-            for x in range(self.env.x_size):
-                cell = self.env.get(x, y)
-                if cell in ' +-':  # Only for valid states
-                    state = State(self.env, x, y)
-                    q_values = self.get_q_row(state)
-                    best_action = self.actions[q_values.index(max(q_values))]
-                    s += f"({x},{y}) {best_action.name}: "
-                    for i, action in enumerate(self.actions):
-                        s += f"{action.name}={q_values[i]:.2f} "
-                    s += "\n"
-        return s
+        result = ""
 
+        # For each action type (UP, RIGHT, DOWN, LEFT)
+        for action_idx, action in enumerate(self.actions):
+            # Print the action name
+            result += action.name + "\n"
+
+            # Create a grid of Q-values for this action
+            action_grid = []
+            for y in range(self.env.y_size):
+                row = []
+                for x in range(self.env.x_size):
+                    cell = self.env.get(x, y)
+                    if cell in ' +-':  # Only valid locations
+                        state = State(self.env, x, y)
+                        q_val = self.get_q(state, action)
+                        row.append(f"{q_val:.2f}")
+                    else:
+                        row.append("----")
+                action_grid.append(row)
+
+            # Print the grid
+            for row in action_grid:
+                result += " ".join(row) + "\n"
+
+        return result
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
