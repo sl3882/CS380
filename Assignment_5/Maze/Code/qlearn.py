@@ -104,16 +104,26 @@ class Env:
 class QTable:
 
     def __init__(self, env, actions):
-        # initialize your q table
+        self.env = env
+        self.actions = actions
+        self.q_table = {}
+        # Initialize Q-values to 0 for all state-action pairs
+        for y in range(env.y_size):
+            for x in range(env.x_size):
+                if env.get(x, y) in ' +-':  # Only for valid states
+                    for action in actions:
+                        self.set_q(State(env, x, y), action, 0.0)
 
     def get_q(self, state, action):
-        # return the value of the q table for the given state, action
 
+        key = (state.x, state.y, action.name)
+        return self.q_table.get(key, 0.0)
     def get_q_row(self, state):
-        # return the row of q table corresponding to the given state
+        return [self.get_q(state, action) for action in self.actions]
 
     def set_q(self, state, action, val):
-        # set the value of the q table for the given state, action
+        key = (state.x, state.y, action.name)
+        self.q_table[key] = val
 
     def learn_episode(self, alpha=.10, gamma=.90):
         # with the given alpha and gamma values,
@@ -122,12 +132,75 @@ class QTable:
         # compute the reward, and update the q table for (state, action).
         # repeat until an end state is reached (thus completing the episode)
         # also print the state after each action
-    
+
+        # 𝑄(𝑆, 𝐴) ← (1 − 𝛼)𝑄(𝑆, 𝐴) + 𝛼[𝑅 + 𝛾max𝐴′𝑄(𝑆′, 𝐴′)]
+        # 𝑅      is the        reward        after        performing        the        action        𝐴 in state        𝑆 — in other
+        # words, the        reward        for the agent in state 𝑆′.The default values of 𝛼 and 𝛾 are provided in the code and can be left as is.To compute the final max part of the equation, note that it is essentially the maximum of the row of the Q-table (which can be gotten with get_q_row()) for state 𝑆′.
+        #
+        state = self.env.random_state()
+        while not state.at_end():
+            # Print current state
+            print(state)
+
+            # Get legal actions from current state
+            legal_actions = state.legal_actions(self.actions)
+
+            # Choose a random action from legal actions
+            action = random.choice(legal_actions)
+
+            # Clone the state to remember where we were
+            prev_state = state.clone()
+
+            # Execute the chosen action, moving to new state
+            state.execute(action)
+
+            # Get the reward from the new state
+            reward = state.reward()
+
+            # Calculate the maximum Q-value for the next state
+            max_next_q = max(self.get_q_row(state)) if not state.at_end() else 0
+
+            # Get the current Q-value for the state-action pair
+            current_q = self.get_q(prev_state, action)
+
+            # Update the Q-value using the Q-learning formula
+            # Q(S,A) = (1-α)Q(S,A) + α[R + γ*max_a'Q(S',a')]
+            new_q = (1 - alpha) * current_q + alpha * (reward + gamma * max_next_q)
+
+            # Update the Q-table
+            self.set_q(prev_state, action, new_q)
+
+            # Print the final state
+        print(state)
+        print("Episode completed!")
+
+
+
+
+
+
+
+
     def learn(self, episodes, alpha=.10, gamma=.90):
-        # run <episodes> number of episodes for learning with the given alpha and gamma
+        for i in range(episodes):
+            print(f"Episode {i + 1}:")
+            self.learn_episode(alpha, gamma)
+            print()
 
     def __str__(self):
-        # return a string for the q table as described in the assignment
+        s = ""
+        for y in range(self.env.y_size):
+            for x in range(self.env.x_size):
+                cell = self.env.get(x, y)
+                if cell in ' +-':  # Only for valid states
+                    state = State(self.env, x, y)
+                    q_values = self.get_q_row(state)
+                    best_action = self.actions[q_values.index(max(q_values))]
+                    s += f"({x},{y}) {best_action.name}: "
+                    for i, action in enumerate(self.actions):
+                        s += f"{action.name}={q_values[i]:.2f} "
+                    s += "\n"
+        return s
 
 
 if __name__ == "__main__":
