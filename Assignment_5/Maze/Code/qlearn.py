@@ -163,34 +163,34 @@ class QTable:
         for i in range(episodes):
             self.learn_episode(alpha, gamma)
 
-    def __str__(self):
-        result = ""
+def __str__(self):
+    result = ""
 
-        # For each action type (UP, RIGHT, DOWN, LEFT)
-        for action_idx, action in enumerate(self.actions):
-            # Print the action name
-            result += action.name + "\n"
+    # For each action type (UP, RIGHT, DOWN, LEFT)
+    for action_idx, action in enumerate(self.actions):
+        # Print the action name
+        result += action.name + "\n"
 
-            # Create a grid of Q-values for this action
-            action_grid = []
-            for y in range(self.env.y_size):
-                row = []
-                for x in range(self.env.x_size):
-                    cell = self.env.get(x, y)
-                    if cell in ' +-':  # Only valid locations
-                        state = State(self.env, x, y)
-                        q_val = self.get_q(state, action)
-                        row.append(f"{q_val:.2f}")
-                    else:
-                        row.append("----")
-                action_grid.append(row)
+        # Create a grid of Q-values for this action
+        action_grid = []
+        for y in range(self.env.y_size):
+            row = []
+            for x in range(self.env.x_size):
+                cell = self.env.get(x, y)
+                if cell in ' +-':  # Only valid locations
+                    state = State(self.env, x, y)
+                    q_val = self.get_q(state, action)
+                    # Display '----' if Q-value is zero, otherwise format to two decimal places
+                    row.append("----" if q_val == 0.0 else f"{q_val:.2f}")
+                else:
+                    row.append("----")  # Invalid locations
+            action_grid.append(row)
 
-            # Print the grid
-            for row in action_grid:
-                result += " ".join(row) + "\n"
+        # Print the grid
+        for row in action_grid:
+            result += " ".join(row) + "\n"
 
-        return result
-
+    return result
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
