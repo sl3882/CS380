@@ -1,9 +1,7 @@
 import random
 import sys
 
-
 DEFAULT_STATE = '       | ###  -| # #  +| # ####|       '
-
 
 class Action:
 
@@ -12,14 +10,12 @@ class Action:
         self.dx = dx
         self.dy = dy
 
-
 ACTIONS = [
     Action('UP', 0, -1),
     Action('RIGHT', +1, 0),
     Action('DOWN', 0, +1),
     Action('LEFT', -1, 0)
 ]
-
 
 class State:
 
@@ -34,14 +30,14 @@ class State:
     def is_legal(self, action):
         cell = self.env.get(self.x + action.dx, self.y + action.dy)
         return cell is not None and cell in ' +-'
-    
+
     def legal_actions(self, actions):
         legal = []
         for action in actions:
             if self.is_legal(action):
                 legal.append(action)
         return legal
-    
+
     def reward(self):
         cell = self.env.get(self.x, self.y)
         if cell is None:
@@ -71,7 +67,6 @@ class State:
         self.env.put(self.x, self.y, tmp)
         return s
 
-
 class Env:
 
     def __init__(self, string):
@@ -99,7 +94,6 @@ class Env:
             x = random.randrange(0, self.x_size)
             y = random.randrange(0, self.y_size)
         return State(self, x, y)
-
 
 class QTable:
 
@@ -156,41 +150,41 @@ class QTable:
             # Print the final state
         print(state)
 
-
-
-
     def learn(self, episodes, alpha=.10, gamma=.90):
         for i in range(episodes):
             self.learn_episode(alpha, gamma)
 
-def __str__(self):
-    result = ""
+    def __str__(self):
+        result = ""
 
-    # For each action type (UP, RIGHT, DOWN, LEFT)
-    for action_idx, action in enumerate(self.actions):
-        # Print the action name
-        result += action.name + "\n"
+        # For each action type (UP, RIGHT, DOWN, LEFT)
+        for action_idx, action in enumerate(self.actions):
+            # Print the action name
+            result += action.name + "\n"
 
-        # Create a grid of Q-values for this action
-        action_grid = []
-        for y in range(self.env.y_size):
-            row = []
-            for x in range(self.env.x_size):
-                cell = self.env.get(x, y)
-                if cell in ' +-':  # Only valid locations
-                    state = State(self.env, x, y)
-                    q_val = self.get_q(state, action)
-                    # Display '----' if Q-value is zero, otherwise format to two decimal places
-                    row.append("----" if q_val == 0.0 else f"{q_val:.2f}")
-                else:
-                    row.append("----")  # Invalid locations
-            action_grid.append(row)
+            # Create a grid of Q-values for this action
+            action_grid = []
+            for y in range(self.env.y_size):
+                row = []
+                for x in range(self.env.x_size):
+                    cell = self.env.get(x, y)
+                    if cell in ' +-':  # Only valid locations
+                        state = State(self.env, x, y)
+                        q_val = self.get_q(state, action)
+                        if q_val == 0.0:  # Check if Q-value is zero
+                            row.append("----")
+                        else:
+                            row.append(f"{q_val:.2f}")
+                    else:
+                        row.append("----")
+                action_grid.append(row)
 
-        # Print the grid
-        for row in action_grid:
-            result += " ".join(row) + "\n"
+            # Print the grid
+            for row in action_grid:
+                result += " ".join(row) + "\n"
 
-    return result
+        return result
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
